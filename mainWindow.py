@@ -14,69 +14,125 @@ class Ui_mainWindow(object):
         self.background.setPixmap(QtGui.QPixmap("assets/background.png"))
         self.background.setObjectName("background")
         mainWindow.setCentralWidget(self.centralwidget)
+
+        # Status bar
         self.statusbar = QtWidgets.QStatusBar(mainWindow)
         self.statusbar.setObjectName("statusbar")
         mainWindow.setStatusBar(self.statusbar)
+
+        # Menu bar
         self.menubar = QtWidgets.QMenuBar(mainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 737, 21))
         self.menubar.setObjectName("menubar")
+
+        # Customers
         self.menuCustomers = QtWidgets.QMenu(self.menubar)
         self.menuCustomers.setObjectName("menuCustomers")
+
+        # Status bar
         self.menuEmployees = QtWidgets.QMenu(self.menubar)
         self.menuEmployees.setObjectName("menuEmployees")
+
+        # Products
         self.menuProducts = QtWidgets.QMenu(self.menubar)
         self.menuProducts.setObjectName("menuProducts")
+        
+        # Orders
         self.menuOrders = QtWidgets.QMenu(self.menubar)
         self.menuOrders.setObjectName("menuOrders")
+        
+        # Suppliers
         self.menuSuppliers = QtWidgets.QMenu(self.menubar)
         self.menuSuppliers.setObjectName("menuSuppliers")
+        
+        # Departments
         self.menuDepartments = QtWidgets.QMenu(self.menubar)
         self.menuDepartments.setObjectName("menuDepartments")
+        
+        # Reports
         self.menuReports = QtWidgets.QMenu(self.menubar)
         self.menuReports.setObjectName("menuReports")
+        
+        # Cretae report
         self.menuCreate_report = QtWidgets.QMenu(self.menuReports)
         self.menuCreate_report.setObjectName("menuCreate_report")
         mainWindow.setMenuBar(self.menubar)
+        
+        # Create Customer
         self.actionCreate_Customer = QtWidgets.QAction(mainWindow)
         self.actionCreate_Customer.setObjectName("actionCreate_Customer")
+        
+        # View Customer
         self.actionView_Customers = QtWidgets.QAction(mainWindow)
         self.actionView_Customers.setObjectName("actionView_Customers")
+        
+        # Create Employee
         self.actionCreate_Employee = QtWidgets.QAction(mainWindow)
         self.actionCreate_Employee.setObjectName("actionCreate_Employee")
+        
+        # View Employee
         self.actionView_Employee = QtWidgets.QAction(mainWindow)
         self.actionView_Employee.setObjectName("actionView_Employee")
+        
+        # View Products
         self.actionView_Products = QtWidgets.QAction(mainWindow)
         self.actionView_Products.setObjectName("actionView_Products")
-        self.actionView_Products_2 = QtWidgets.QAction(mainWindow)
-        self.actionView_Products_2.setObjectName("actionView_Products_2")
+        
+        # Create Product
+        self.actionCreate_Products = QtWidgets.QAction(mainWindow)
+        self.actionCreate_Products.setObjectName("actionCreate_Products")
+        
+        # Create Order
         self.actionCreate_Orders = QtWidgets.QAction(mainWindow)
         self.actionCreate_Orders.setObjectName("actionCreate_Orders")
+        
+        # View Order
         self.actionView_Orders = QtWidgets.QAction(mainWindow)
         self.actionView_Orders.setObjectName("actionView_Orders")
+        
+        # Create Supplier
         self.actionCreate_Supplier = QtWidgets.QAction(mainWindow)
         self.actionCreate_Supplier.setObjectName("actionCreate_Supplier")
+        
+        # View Supplier
         self.actionView_Supplier = QtWidgets.QAction(mainWindow)
         self.actionView_Supplier.setObjectName("actionView_Supplier")
+        
+        # Create Department
         self.actionCreate_Department = QtWidgets.QAction(mainWindow)
         self.actionCreate_Department.setObjectName("actionCreate_Department")
+        
+        # View Department
         self.actionView_Department = QtWidgets.QAction(mainWindow)
         self.actionView_Department.setObjectName("actionView_Department")
+        
+        # View Report
         self.actionView_reports = QtWidgets.QAction(mainWindow)
         self.actionView_reports.setObjectName("actionView_reports")
+        
+        # Print Report
         self.actionPrint_report = QtWidgets.QAction(mainWindow)
         self.actionPrint_report.setObjectName("actionPrint_report")
+        
+        # Report: Revenue per Customer
         self.actionRevenue_per_Customer = QtWidgets.QAction(mainWindow)
         self.actionRevenue_per_Customer.setObjectName("actionRevenue_per_Customer")
+        
+        # Report: Revenue per Product
         self.actionRevenue_per_Product = QtWidgets.QAction(mainWindow)
         self.actionRevenue_per_Product.setObjectName("actionRevenue_per_Product")
+        
+        # Report: Revenue per Supplier
         self.actionRevenue_per_Supplier = QtWidgets.QAction(mainWindow)
         self.actionRevenue_per_Supplier.setObjectName("actionRevenue_per_Supplier")
+        
+        # Adding the actions
         self.menuCustomers.addAction(self.actionCreate_Customer)
         self.menuCustomers.addAction(self.actionView_Customers)
         self.menuEmployees.addAction(self.actionCreate_Employee)
         self.menuEmployees.addAction(self.actionView_Employee)
         self.menuProducts.addAction(self.actionView_Products)
-        self.menuProducts.addAction(self.actionView_Products_2)
+        self.menuProducts.addAction(self.actionCreate_Products)
         self.menuOrders.addAction(self.actionCreate_Orders)
         self.menuOrders.addAction(self.actionView_Orders)
         self.menuSuppliers.addAction(self.actionCreate_Supplier)
@@ -100,6 +156,8 @@ class Ui_mainWindow(object):
         self.retranslateUi(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
+
+    # Pyqt5 translate function
     def retranslateUi(self, mainWindow):
         _translate = QtCore.QCoreApplication.translate
         mainWindow.setWindowTitle(_translate("mainWindow", "MainWindow"))
@@ -116,7 +174,7 @@ class Ui_mainWindow(object):
         self.actionCreate_Employee.setText(_translate("mainWindow", "Create Employee"))
         self.actionView_Employee.setText(_translate("mainWindow", "View Employee"))
         self.actionView_Products.setText(_translate("mainWindow", "Create Products"))
-        self.actionView_Products_2.setText(_translate("mainWindow", "View Products"))
+        self.actionCreate_Products.setText(_translate("mainWindow", "View Products"))
         self.actionCreate_Orders.setText(_translate("mainWindow", "Create Orders"))
         self.actionView_Orders.setText(_translate("mainWindow", "View Orders"))
         self.actionCreate_Supplier.setText(_translate("mainWindow", "Create Supplier"))
@@ -130,6 +188,7 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Supplier.setText(_translate("mainWindow", "Revenue per Supplier"))
 
 
+# Initialize app
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
