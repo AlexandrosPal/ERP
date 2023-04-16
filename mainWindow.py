@@ -2,6 +2,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_mainWindow(object):
+    windowCount = 0
+
     def setupUi(self, mainWindow):
         mainWindow.setObjectName("mainWindow")
         mainWindow.resize(737, 511)
@@ -103,8 +105,45 @@ class Ui_mainWindow(object):
         self.menubar.addAction(self.menuDepartments.menuAction())
         self.menubar.addAction(self.menuReports.menuAction())
 
+        self.actionCreate_Customer.triggered.connect(self.newWindow)
+
         self.retranslateUi(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
+
+    def newWindow(self, mdi):
+        Ui_mainWindow.windowCount += 1
+        sub = QtWidgets.QMdiSubWindow()
+        sub.setFixedSize(300, 200)
+        sub.setWindowTitle(f"Window: {Ui_mainWindow.windowCount}")
+
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        label = QtWidgets.QLabel("Name:", sub)
+        label2 = QtWidgets.QLabel("Email:", sub)
+        label3 = QtWidgets.QLabel("Phone Number:", sub)
+        lineEdit = QtWidgets.QLineEdit(sub)
+        lineEdit2 = QtWidgets.QLineEdit(sub)
+        lineEdit3 = QtWidgets.QLineEdit(sub)
+        pushButton = QtWidgets.QPushButton(sub)
+
+        label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        label.setFont(font)
+        label.setGeometry(QtCore.QRect(40, 40, 81, 21))
+        label2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        label2.setFont(font)
+        label2.setGeometry(QtCore.QRect(40, 80, 81, 21))
+        label3.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        label3.setFont(font)
+        label3.setGeometry(QtCore.QRect(20, 120, 111, 21))
+        lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
+        lineEdit2.setGeometry(QtCore.QRect(140, 80, 113, 20))
+        lineEdit3.setGeometry(QtCore.QRect(140, 120, 113, 20))
+        pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
+
+        self.mdiArea.addSubWindow(sub)
+        
+        sub.show()
+
 
     def retranslateUi(self, mainWindow):
         _translate = QtCore.QCoreApplication.translate
