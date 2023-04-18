@@ -1,5 +1,16 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sqlite3
+import logging
+
+
+# Logging User
+erpLogger = logging.getLogger('ERP')
+erpLogger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(levelname)s: %(asctime)s: %(name)s: %(message)s')
+fileHandler = logging.FileHandler('erp.log')
+fileHandler.setFormatter(formatter)
+erpLogger.addHandler(fileHandler)
+
 
 conn = sqlite3.connect('erp.db')
 c = conn.cursor()
@@ -150,7 +161,7 @@ class Ui_mainWindow(object):
                     c.execute("SELECT * FROM customers")
                     print(c.fetchall())
                 except sqlite3.DatabaseError as e:
-                    print(e)
+                    erpLogger.info(f"Problem faced: {e}")
 
         label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         label.setFont(font)
