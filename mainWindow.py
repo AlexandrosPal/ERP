@@ -27,7 +27,7 @@ with conn:
     # c.execute("SELECT * FROM departments")
     # print(c.fetchall())
     pass
-
+ 
 
 class Ui_mainWindow(object):
     windowCount = 0
