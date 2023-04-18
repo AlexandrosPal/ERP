@@ -16,12 +16,14 @@ conn = sqlite3.connect('erp.db')
 c = conn.cursor()
 
 # with conn:
-    # c.execute("CREATE TABLE employees(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
-    # c.execute("CREATE TABLE suppliers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
     # c.execute("CREATE TABLE customers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
+    # c.execute("CREATE TABLE employees(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), department varchar(50))")
+    # c.execute("CREATE TABLE suppliers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
+    # c.execute("CREATE TABLE departments(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50))")
     # c.execute("DROP TABLE customers")
     # c.execute("DROP TABLE employees")
     # c.execute("DROP TABLE suppliers")
+    # c.execute("DROP TABLE departments")
 
 
 class Ui_mainWindow(object):
@@ -90,8 +92,8 @@ class Ui_mainWindow(object):
         self.actionView_Suppliers.setObjectName("actionView_Supplier")
         self.actionCreate_Department = QtWidgets.QAction(mainWindow)
         self.actionCreate_Department.setObjectName("actionCreate_Department")
-        self.actionView_Department = QtWidgets.QAction(mainWindow)
-        self.actionView_Department.setObjectName("actionView_Department")
+        self.actionView_Departments = QtWidgets.QAction(mainWindow)
+        self.actionView_Departments.setObjectName("actionView_Department")
         self.actionView_reports = QtWidgets.QAction(mainWindow)
         self.actionView_reports.setObjectName("actionView_reports")
         self.actionPrint_report = QtWidgets.QAction(mainWindow)
@@ -113,7 +115,7 @@ class Ui_mainWindow(object):
         self.menuSuppliers.addAction(self.actionCreate_Supplier)
         self.menuSuppliers.addAction(self.actionView_Suppliers)
         self.menuDepartments.addAction(self.actionCreate_Department)
-        self.menuDepartments.addAction(self.actionView_Department)
+        self.menuDepartments.addAction(self.actionView_Departments)
         self.menuCreate_report.addAction(self.actionRevenue_per_Customer)
         self.menuCreate_report.addAction(self.actionRevenue_per_Product)
         self.menuCreate_report.addAction(self.actionRevenue_per_Supplier)
@@ -128,116 +130,62 @@ class Ui_mainWindow(object):
         self.menubar.addAction(self.menuDepartments.menuAction())
         self.menubar.addAction(self.menuReports.menuAction())
 
-        self.actionCreate_Customer.triggered.connect(self.createCustomer)
-        self.actionCreate_Employee.triggered.connect(self.createEmployee)
-        self.actionCreate_Supplier.triggered.connect(self.createSupplier)
+        self.actionCreate_Customer.triggered.connect(lambda: self.createWindow('customers'))
+        self.actionCreate_Employee.triggered.connect(lambda: self.createWindow('employees'))
+        self.actionCreate_Supplier.triggered.connect(lambda: self.createWindow('suppliers'))
+        self.actionCreate_Department.triggered.connect(lambda: self.createWindow('departments'))
         self.actionView_Customers.triggered.connect(self.viewCustomers)
         self.actionView_Employees.triggered.connect(self.viewEmployees)
         self.actionView_Suppliers.triggered.connect(self.viewSuppliers)
+        self.actionView_Departments.triggered.connect(self.viewDepartments)
 
         self.retranslateUi(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
-    def createCustomer(self):
-        Ui_mainWindow.windowCount += 1
+
+    def createWindow(self, table):
         sub = QtWidgets.QMdiSubWindow()
         sub.setFixedSize(300, 200)
-        sub.setWindowTitle("Create Customer")
+        sub.setWindowTitle(f"Create {table}")
+        if table == 'customers' or table == 'employees' or table == 'suppliers':
+            font = QtGui.QFont()
+            font.setPointSize(12)
+            label = QtWidgets.QLabel("Name:", sub)
+            label2 = QtWidgets.QLabel("Email:", sub)
+            label3 = QtWidgets.QLabel("Phone Number:", sub)
+            lineEdit = QtWidgets.QLineEdit(sub)
+            lineEdit2 = QtWidgets.QLineEdit(sub)
+            lineEdit3 = QtWidgets.QLineEdit(sub)
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB(table, lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
 
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        label = QtWidgets.QLabel("Name:", sub)
-        label2 = QtWidgets.QLabel("Email:", sub)
-        label3 = QtWidgets.QLabel("Phone Number:", sub)
-        lineEdit = QtWidgets.QLineEdit(sub)
-        lineEdit2 = QtWidgets.QLineEdit(sub)
-        lineEdit3 = QtWidgets.QLineEdit(sub)
-        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB('customers', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
+            label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label.setFont(font)
+            label.setGeometry(QtCore.QRect(40, 40, 81, 21))
+            label2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label2.setFont(font)
+            label2.setGeometry(QtCore.QRect(40, 80, 81, 21))
+            label3.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label3.setFont(font)
+            label3.setGeometry(QtCore.QRect(20, 120, 111, 21))
+            lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
+            lineEdit2.setGeometry(QtCore.QRect(140, 80, 113, 20))
+            lineEdit3.setGeometry(QtCore.QRect(140, 120, 113, 20))
+            pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
+            
+        elif table == 'departments':
+            font = QtGui.QFont()
+            font.setPointSize(12)
+            label = QtWidgets.QLabel("Name:", sub)
+            lineEdit = QtWidgets.QLineEdit(sub)
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB('departments', lineEdit, None, None))
 
-        label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        label.setFont(font)
-        label.setGeometry(QtCore.QRect(40, 40, 81, 21))
-        label2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        label2.setFont(font)
-        label2.setGeometry(QtCore.QRect(40, 80, 81, 21))
-        label3.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        label3.setFont(font)
-        label3.setGeometry(QtCore.QRect(20, 120, 111, 21))
-        lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
-        lineEdit2.setGeometry(QtCore.QRect(140, 80, 113, 20))
-        lineEdit3.setGeometry(QtCore.QRect(140, 120, 113, 20))
-        pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
-
-        self.mdiArea.addSubWindow(sub)
+            label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label.setFont(font)
+            label.setGeometry(QtCore.QRect(40, 40, 81, 21))
+            lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
+            pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
         
-        sub.show()
-
-    def createEmployee(self):
-        Ui_mainWindow.windowCount += 1
-        sub = QtWidgets.QMdiSubWindow()
-        sub.setFixedSize(300, 200)
-        sub.setWindowTitle("Create Employee")
-
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        label = QtWidgets.QLabel("Name:", sub)
-        label2 = QtWidgets.QLabel("Email:", sub)
-        label3 = QtWidgets.QLabel("Phone Number:", sub)
-        lineEdit = QtWidgets.QLineEdit(sub)
-        lineEdit2 = QtWidgets.QLineEdit(sub)
-        lineEdit3 = QtWidgets.QLineEdit(sub)
-        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB('employees', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
-
-        label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        label.setFont(font)
-        label.setGeometry(QtCore.QRect(40, 40, 81, 21))
-        label2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        label2.setFont(font)
-        label2.setGeometry(QtCore.QRect(40, 80, 81, 21))
-        label3.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        label3.setFont(font)
-        label3.setGeometry(QtCore.QRect(20, 120, 111, 21))
-        lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
-        lineEdit2.setGeometry(QtCore.QRect(140, 80, 113, 20))
-        lineEdit3.setGeometry(QtCore.QRect(140, 120, 113, 20))
-        pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
-
         self.mdiArea.addSubWindow(sub)
-        
-        sub.show()
-
-    def createSupplier(self):
-        Ui_mainWindow.windowCount += 1
-        sub = QtWidgets.QMdiSubWindow()
-        sub.setFixedSize(300, 200)
-        sub.setWindowTitle("Create Supplier")
-
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        label = QtWidgets.QLabel("Name:", sub)
-        label2 = QtWidgets.QLabel("Email:", sub)
-        label3 = QtWidgets.QLabel("Phone Number:", sub)
-        lineEdit = QtWidgets.QLineEdit(sub)
-        lineEdit2 = QtWidgets.QLineEdit(sub)
-        lineEdit3 = QtWidgets.QLineEdit(sub)
-        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB('suppliers', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
-
-        label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        label.setFont(font)
-        label.setGeometry(QtCore.QRect(40, 40, 81, 21))
-        label2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        label2.setFont(font)
-        label2.setGeometry(QtCore.QRect(40, 80, 81, 21))
-        label3.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        label3.setFont(font)
-        label3.setGeometry(QtCore.QRect(20, 120, 111, 21))
-        lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
-        lineEdit2.setGeometry(QtCore.QRect(140, 80, 113, 20))
-        lineEdit3.setGeometry(QtCore.QRect(140, 120, 113, 20))
-        pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
-
-        self.mdiArea.addSubWindow(sub)
-        
         sub.show()
 
     def viewCustomers(self):
@@ -250,14 +198,8 @@ class Ui_mainWindow(object):
         tableWidget.setObjectName("tableWidget")
         tableWidget.setColumnCount(4)
         tableWidget.setRowCount(0)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(1, item)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(2, item)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(3, item)
+        headers = ["ID", "Name", "Email", "Phone"]
+        tableWidget.setHorizontalHeaderLabels(headers)
         lineEdit = QtWidgets.QLineEdit(sub)
         lineEdit_2 = QtWidgets.QLineEdit(sub)
         lineEdit_3 = QtWidgets.QLineEdit(sub)
@@ -270,6 +212,9 @@ class Ui_mainWindow(object):
         lineEdit.setPlaceholderText("Search by name")
         lineEdit_2.setPlaceholderText("Search by email")
         lineEdit_3.setPlaceholderText("search by phone")
+        pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        self.viewInfo('customers', tableWidget)
 
         self.mdiArea.addSubWindow(sub)
         
@@ -285,14 +230,8 @@ class Ui_mainWindow(object):
         tableWidget.setObjectName("tableWidget")
         tableWidget.setColumnCount(4)
         tableWidget.setRowCount(0)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(1, item)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(2, item)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(3, item)
+        headers = ["ID", "Name", "Email", "Phone"]
+        tableWidget.setHorizontalHeaderLabels(headers)
         lineEdit = QtWidgets.QLineEdit(sub)
         lineEdit_2 = QtWidgets.QLineEdit(sub)
         lineEdit_3 = QtWidgets.QLineEdit(sub)
@@ -305,6 +244,9 @@ class Ui_mainWindow(object):
         lineEdit.setPlaceholderText("Search by name")
         lineEdit_2.setPlaceholderText("Search by email")
         lineEdit_3.setPlaceholderText("search by phone")
+        pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        self.viewInfo('employees', tableWidget)
 
         self.mdiArea.addSubWindow(sub)
         
@@ -320,14 +262,8 @@ class Ui_mainWindow(object):
         tableWidget.setObjectName("tableWidget")
         tableWidget.setColumnCount(4)
         tableWidget.setRowCount(0)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(1, item)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(2, item)
-        item = QtWidgets.QTableWidgetItem()
-        tableWidget.setHorizontalHeaderItem(3, item)
+        headers = ["ID", "Name", "Email", "Phone"]
+        tableWidget.setHorizontalHeaderLabels(headers)
         lineEdit = QtWidgets.QLineEdit(sub)
         lineEdit_2 = QtWidgets.QLineEdit(sub)
         lineEdit_3 = QtWidgets.QLineEdit(sub)
@@ -340,19 +276,105 @@ class Ui_mainWindow(object):
         lineEdit.setPlaceholderText("Search by name")
         lineEdit_2.setPlaceholderText("Search by email")
         lineEdit_3.setPlaceholderText("search by phone")
+        pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        self.viewInfo('suppliers', tableWidget)
 
         self.mdiArea.addSubWindow(sub)
         
         sub.show()
 
-    def addInfotoDB(self, table, name, email, phone):
+    def viewDepartments(self):
+        Ui_mainWindow.windowCount += 1
+        sub = QtWidgets.QMdiSubWindow()
+        sub.setFixedSize(440, 260)
+        sub.setWindowTitle("View Suppliers")
+
+        tableWidget = QtWidgets.QTableWidget(sub)
+        tableWidget.setObjectName("tableWidget")
+        tableWidget.setColumnCount(3)
+        tableWidget.setRowCount(0)
+        headers = ["ID", "Name", "Number of Employees"]
+        tableWidget.setHorizontalHeaderLabels(headers)
+        lineEdit = QtWidgets.QLineEdit(sub)
+        lineEdit_2 = QtWidgets.QLineEdit(sub)
+        lineEdit_3 = QtWidgets.QLineEdit(sub)
+        pushButton = QtWidgets.QPushButton("Search", sub)
+        tableWidget.setGeometry(QtCore.QRect(15, 70, 411, 171))
+        lineEdit.setGeometry(QtCore.QRect(15, 40, 91, 20))
+        lineEdit_2.setGeometry(QtCore.QRect(115, 40, 91, 20))
+        lineEdit_3.setGeometry(QtCore.QRect(215, 40, 91, 20))
+        pushButton.setGeometry(QtCore.QRect(315, 40, 111, 23))
+        lineEdit.setPlaceholderText("Search by name")
+        lineEdit_2.setPlaceholderText("Search by email")
+        lineEdit_3.setPlaceholderText("search by phone")
+        pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        self.viewInfo('departments', tableWidget)
+
+        self.mdiArea.addSubWindow(sub)
+        
+        sub.show()
+
+    def addInfotoDB(self, table, name, email, phone_department):
         with conn:
             try:
-                c.execute(f"INSERT INTO {table} (name, email, phone) VALUES ('{name}', '{email}', '{phone}')")
-                c.execute(f"SELECT * FROM {table}")
-                print(c.fetchall())
+                if table == 'customers' or table == 'suppliers':
+                    c.execute(f"INSERT INTO {table} (name, email, phone) VALUES ('{name.text()}', '{email.text()}', '{phone_department.text()}')")
+                    c.execute(f"SELECT * FROM {table}")
+                    print(c.fetchall())
+                    name.clear()
+                    email.clear()
+                    phone_department.clear()
+                elif table == 'employees':
+                    c.execute("SELECT name FROM departments")
+                    if phone_department not in c.fetchall():
+                        self.errorPopup('departmentError')
+                    else:
+                        c.execute(f"INSERT INTO {table} (name, email, department) VALUES ('{name.text()}', '{email.text()}', '{phone_department.text()}')")
+                        c.execute(f"SELECT * FROM {table}")
+                        print(c.fetchall())
+                        name.clear()
+                        email.clear()
+                        phone_department.clear()
+                elif table == 'departments':
+                    c.execute("SELECT names FROM departments")
+                    departments = c.fetchall()
+                    for department in departments:
+                        print(department[0])
+                        if department[0] == name:
+                            self.errorPopup('departmentExists')
+                        else:
+                            c.execute(f"INSERT INTO {table} (name) VALUES ('{name.text()}')")
+                    name.clear()
+
             except sqlite3.DatabaseError as e:
                 erpLogger.info(f"Problem faced: {e}")
+
+    def viewInfo(self, dbTable, table):
+        if dbTable == 'departments':
+            with conn:
+                c.execute(f"SELECT departments.ID, departments.name, COUNT(employees.ID) FROM departments JOIN employees ON departments.name = employees.department")
+                print(c.fetchall())
+        with conn:
+            c.execute(f"SELECT * FROM {dbTable}")
+        table.setRowCount(0)
+        for data in c.fetchall():
+            row_index = table.rowCount()
+            for column_index, data in enumerate(data):
+                data = str(data)
+                table.setRowCount(row_index+1)
+                table.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+
+    def errorPopup(self, reason):
+        msg = QtWidgets.QMessageBox()
+        msg.setWindowTitle("Error")
+        if reason == 'departmentError':
+            msg.setText("Department not found.")
+        elif reason == 'departmentExists':
+            msg.setText("Department already exists.")
+        show = msg.exec_()     
+
 
     def retranslateUi(self, mainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -376,7 +398,7 @@ class Ui_mainWindow(object):
         self.actionCreate_Supplier.setText(_translate("mainWindow", "Create Supplier"))
         self.actionView_Suppliers.setText(_translate("mainWindow", "View Supplier"))
         self.actionCreate_Department.setText(_translate("mainWindow", "Create Department"))
-        self.actionView_Department.setText(_translate("mainWindow", "View Department"))
+        self.actionView_Departments.setText(_translate("mainWindow", "View Department"))
         self.actionView_reports.setText(_translate("mainWindow", "View reports"))
         self.actionPrint_report.setText(_translate("mainWindow", "Print report"))
         self.actionRevenue_per_Customer.setText(_translate("mainWindow", "Revenue per Customer"))
