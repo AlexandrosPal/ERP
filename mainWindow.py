@@ -149,6 +149,7 @@ class Ui_mainWindow(object):
         sub = QtWidgets.QMdiSubWindow()
         sub.setFixedSize(300, 200)
         sub.setWindowTitle(f"Create {table}")
+
         if table == 'customers' or table == 'suppliers':
             font = QtGui.QFont()
             font.setPointSize(12)
@@ -158,7 +159,7 @@ class Ui_mainWindow(object):
             lineEdit = QtWidgets.QLineEdit(sub)
             lineEdit2 = QtWidgets.QLineEdit(sub)
             lineEdit3 = QtWidgets.QLineEdit(sub)
-            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB(table, lineEdit, lineEdit2, lineEdit3, None))
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.insertInfo(table, lineEdit, lineEdit2, lineEdit3))
 
             label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
             label.setFont(font)
@@ -175,20 +176,6 @@ class Ui_mainWindow(object):
             pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
             pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
             
-        elif table == 'departments':
-            font = QtGui.QFont()
-            font.setPointSize(12)
-            label = QtWidgets.QLabel("Name:", sub)
-            lineEdit = QtWidgets.QLineEdit(sub)
-            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB(table, lineEdit, None, None, None))
-
-            label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-            label.setFont(font)
-            label.setGeometry(QtCore.QRect(40, 40, 81, 21))
-            lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
-            pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
-            pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-
         elif table == 'employees':
             font = QtGui.QFont()
             font.setPointSize(12)
@@ -200,7 +187,7 @@ class Ui_mainWindow(object):
             lineEdit2 = QtWidgets.QLineEdit(sub)
             lineEdit3 = QtWidgets.QLineEdit(sub)
             lineEdit4 = QtWidgets.QLineEdit(sub)
-            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB(table, lineEdit, lineEdit2, lineEdit3, lineEdit4))
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.insertInfo(table, lineEdit, lineEdit2, lineEdit3, lineEdit4))
 
             label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
             label.setFont(font)
@@ -220,7 +207,24 @@ class Ui_mainWindow(object):
             lineEdit4.setGeometry(QtCore.QRect(140, 130, 113, 20))
             pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
             pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        
+
+        elif table == 'departments':
+            font = QtGui.QFont()
+            font.setPointSize(12)
+            label = QtWidgets.QLabel("Name:", sub)
+            lineEdit = QtWidgets.QLineEdit(sub)
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.insertInfo(table, lineEdit))
+
+            label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label.setFont(font)
+            label.setGeometry(QtCore.QRect(40, 40, 81, 21))
+            lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
+            pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
+            pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+            self.mdiArea.addSubWindow(sub)
+            sub.show()
+
         self.mdiArea.addSubWindow(sub)
         sub.show()
 
@@ -267,23 +271,25 @@ class Ui_mainWindow(object):
         self.mdiArea.addSubWindow(sub)
         sub.show()
 
-    def addInfotoDB(self, table, name, email, phone_department, pay):
+    def insertInfo(self, table, *args):
         try:
             if table == 'customers' or table == 'suppliers':
+                name, email, phone = args
                 with conn:
-                    c.execute(f"INSERT INTO {table} (name, email, phone) VALUES ('{name.text()}', '{email.text()}', '{phone_department.text()}')")
-                    c.execute(f"SELECT * FROM {table}")
+                        c.execute(f"INSERT INTO {table} (name, email, phone) VALUES ('{name.text()}', '{email.text()}', '{phone.text()}')")
+                        c.execute(f"SELECT * FROM {table}")
                 name.clear()
                 email.clear()
-                phone_department.clear()
-                
+                phone.clear()
+
             elif table == 'employees':
+                name, email, department, pay = args
                 with conn:
                     c.execute("SELECT name FROM departments")
                 departments = c.fetchall()
                 state = True
-                for department in departments:
-                    if phone_department.text() != department[0]:
+                for listedDepartment in departments:
+                    if listedDepartment[0] != department.text():
                         state = False
                     else:
                         state = True
@@ -291,24 +297,25 @@ class Ui_mainWindow(object):
                 if state:
                     with conn:
                         annualPay = int(pay.text())
-                        c.execute(f"INSERT INTO {table} (name, email, department, pay) VALUES ('{name.text()}', '{email.text()}', '{phone_department.text()}', '{annualPay:,}')")
+                        c.execute(f"INSERT INTO {table} (name, email, department, pay) VALUES ('{name.text()}', '{email.text()}', '{department.text()}', '{annualPay:,}')")
                     name.clear()
                     email.clear()
-                    phone_department.clear()
+                    department.clear()
                     pay.clear()
                 else:
                     self.errorPopup('departmentError')
 
             elif table == 'departments':
+                name = args[0]
                 with conn:
-                    c.execute("SELECT name FROM departments")
+                        c.execute("SELECT name FROM departments")
                 departments = c.fetchall()
                 print(departments)
                 if departments == []:
                     with conn:
                         c.execute(f"INSERT INTO {table} (name) VALUES ('{name.text()}')")
                         name.clear()
-                    
+                
                 else:  
                     for department in departments:
                         if department[0].lower() == name.text().lower():
@@ -319,7 +326,7 @@ class Ui_mainWindow(object):
                                 c.execute(f"INSERT INTO {table} (name) VALUES ('{name.text()}')")
                                 name.clear()
                                 break
-
+        
         except sqlite3.DatabaseError as e:
             erpLogger.info(f"Problem faced: {e}")
 
