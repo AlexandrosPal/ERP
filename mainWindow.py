@@ -17,7 +17,7 @@ c = conn.cursor()
 
 with conn:
     # c.execute("CREATE TABLE customers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
-    # c.execute("CREATE TABLE employees(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), department varchar(50))")
+    # c.execute("CREATE TABLE employees(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), department varchar(50), pay INTEGER)")
     # c.execute("CREATE TABLE suppliers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
     # c.execute("CREATE TABLE departments(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50))")
     # c.execute("DROP TABLE customers")
@@ -30,11 +30,10 @@ with conn:
  
 
 class Ui_mainWindow(object):
-    windowCount = 0
 
     def setupUi(self, mainWindow):
         mainWindow.setObjectName("mainWindow")
-        mainWindow.resize(737, 511)
+        mainWindow.setFixedSize(737, 511)
         self.centralwidget = QtWidgets.QWidget(mainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.background = QtWidgets.QLabel(self.centralwidget)
@@ -81,10 +80,10 @@ class Ui_mainWindow(object):
         self.actionCreate_Employee.setObjectName("actionCreate_Employee")
         self.actionView_Employees = QtWidgets.QAction(mainWindow)
         self.actionView_Employees.setObjectName("actionView_Employee")
+        self.actionCreate_Product = QtWidgets.QAction(mainWindow)
+        self.actionCreate_Product.setObjectName("actionCreate_Product")
         self.actionView_Products = QtWidgets.QAction(mainWindow)
         self.actionView_Products.setObjectName("actionView_Products")
-        self.actionView_Products_2 = QtWidgets.QAction(mainWindow)
-        self.actionView_Products_2.setObjectName("actionView_Products_2")
         self.actionCreate_Orders = QtWidgets.QAction(mainWindow)
         self.actionCreate_Orders.setObjectName("actionCreate_Orders")
         self.actionView_Orders = QtWidgets.QAction(mainWindow)
@@ -111,8 +110,8 @@ class Ui_mainWindow(object):
         self.menuCustomers.addAction(self.actionView_Customers)
         self.menuEmployees.addAction(self.actionCreate_Employee)
         self.menuEmployees.addAction(self.actionView_Employees)
+        self.menuProducts.addAction(self.actionCreate_Product)
         self.menuProducts.addAction(self.actionView_Products)
-        self.menuProducts.addAction(self.actionView_Products_2)
         self.menuOrders.addAction(self.actionCreate_Orders)
         self.menuOrders.addAction(self.actionView_Orders)
         self.menuSuppliers.addAction(self.actionCreate_Supplier)
@@ -150,19 +149,16 @@ class Ui_mainWindow(object):
         sub = QtWidgets.QMdiSubWindow()
         sub.setFixedSize(300, 200)
         sub.setWindowTitle(f"Create {table}")
-        if table == 'customers' or table == 'employees' or table == 'suppliers':
+        if table == 'customers' or table == 'suppliers':
             font = QtGui.QFont()
             font.setPointSize(12)
             label = QtWidgets.QLabel("Name:", sub)
             label2 = QtWidgets.QLabel("Email:", sub)
-            if table == 'employees':
-                label3 = QtWidgets.QLabel("Department:", sub)
-            else:
-                label3 = QtWidgets.QLabel("Phone Number:", sub)
+            label3 = QtWidgets.QLabel("Phone Number:", sub)
             lineEdit = QtWidgets.QLineEdit(sub)
             lineEdit2 = QtWidgets.QLineEdit(sub)
             lineEdit3 = QtWidgets.QLineEdit(sub)
-            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB(table, lineEdit, lineEdit2, lineEdit3))
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB(table, lineEdit, lineEdit2, lineEdit3, None))
 
             label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
             label.setFont(font)
@@ -184,12 +180,44 @@ class Ui_mainWindow(object):
             font.setPointSize(12)
             label = QtWidgets.QLabel("Name:", sub)
             lineEdit = QtWidgets.QLineEdit(sub)
-            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB(table, lineEdit, 'None', 'None'))
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB(table, lineEdit, None, None, None))
 
             label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
             label.setFont(font)
             label.setGeometry(QtCore.QRect(40, 40, 81, 21))
             lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
+            pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
+            pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        elif table == 'employees':
+            font = QtGui.QFont()
+            font.setPointSize(12)
+            label = QtWidgets.QLabel("Name:", sub)
+            label2 = QtWidgets.QLabel("Email:", sub)
+            label3 = QtWidgets.QLabel("Department:", sub)
+            label4 = QtWidgets.QLabel("Annual Pay:", sub)
+            lineEdit = QtWidgets.QLineEdit(sub)
+            lineEdit2 = QtWidgets.QLineEdit(sub)
+            lineEdit3 = QtWidgets.QLineEdit(sub)
+            lineEdit4 = QtWidgets.QLineEdit(sub)
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB(table, lineEdit, lineEdit2, lineEdit3, lineEdit4))
+
+            label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label.setFont(font)
+            label.setGeometry(QtCore.QRect(40, 40, 81, 21))
+            label2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label2.setFont(font)
+            label2.setGeometry(QtCore.QRect(40, 70, 81, 21))
+            label3.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label3.setFont(font)
+            label3.setGeometry(QtCore.QRect(10, 100, 111, 21))
+            label4.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label4.setFont(font)
+            label4.setGeometry(QtCore.QRect(10, 130, 111, 21))
+            lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
+            lineEdit2.setGeometry(QtCore.QRect(140, 70, 113, 20))
+            lineEdit3.setGeometry(QtCore.QRect(140, 100, 113, 20))
+            lineEdit4.setGeometry(QtCore.QRect(140, 130, 113, 20))
             pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
             pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         
@@ -212,7 +240,7 @@ class Ui_mainWindow(object):
         lineEdit_2.setGeometry(QtCore.QRect(115, 40, 91, 20))
         pushButton.setGeometry(QtCore.QRect(315, 40, 111, 23))
         pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
-        if table == 'employees' or table == 'customers' or table == 'suppliers':
+        if table == 'customers' or table == 'suppliers':
             lineEdit_3 = QtWidgets.QLineEdit(sub)
             lineEdit_3.setGeometry(QtCore.QRect(215, 40, 91, 20))
             tableWidget.setColumnCount(4)
@@ -220,6 +248,14 @@ class Ui_mainWindow(object):
             lineEdit.setPlaceholderText("Search by name")
             lineEdit_2.setPlaceholderText("Search by email")
             lineEdit_3.setPlaceholderText("search by phone")
+        elif table == 'employees':
+            lineEdit_3 = QtWidgets.QLineEdit(sub)
+            lineEdit_3.setGeometry(QtCore.QRect(215, 40, 91, 20))
+            tableWidget.setColumnCount(5)
+            headers = ["ID", "Name", "Email", "Department", "Pay"]
+            lineEdit.setPlaceholderText("Search by name")
+            lineEdit_2.setPlaceholderText("Search by email")
+            lineEdit_3.setPlaceholderText("search by department")
         elif table == 'departments':
             tableWidget.setColumnCount(3)
             headers = ["ID", "Name", "Employees"]
@@ -231,7 +267,7 @@ class Ui_mainWindow(object):
         self.mdiArea.addSubWindow(sub)
         sub.show()
 
-    def addInfotoDB(self, table, name, email, phone_department):
+    def addInfotoDB(self, table, name, email, phone_department, pay):
         try:
             if table == 'customers' or table == 'suppliers':
                 with conn:
@@ -254,10 +290,12 @@ class Ui_mainWindow(object):
                         break
                 if state:
                     with conn:
-                        c.execute(f"INSERT INTO {table} (name, email, department) VALUES ('{name.text()}', '{email.text()}', '{phone_department.text()}')")
+                        annualPay = int(pay.text())
+                        c.execute(f"INSERT INTO {table} (name, email, department, pay) VALUES ('{name.text()}', '{email.text()}', '{phone_department.text()}', '{annualPay:,}')")
                     name.clear()
                     email.clear()
                     phone_department.clear()
+                    pay.clear()
                 else:
                     self.errorPopup('departmentError')
 
@@ -308,6 +346,18 @@ class Ui_mainWindow(object):
                         table.setRowCount(row_index+1)
                         table.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
 
+    def filterView(self, table, tableWidget, *args):
+        if table == 'customers' or table == 'suppliers':
+            pass
+        
+        elif table == 'employees':
+            pass
+
+        elif table == 'departments':
+            pass
+        
+        self.viewInfo(table, tableWidget)
+
     def errorPopup(self, reason):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Error")
@@ -333,8 +383,8 @@ class Ui_mainWindow(object):
         self.actionView_Customers.setText(_translate("mainWindow", "View Customers"))
         self.actionCreate_Employee.setText(_translate("mainWindow", "Create Employee"))
         self.actionView_Employees.setText(_translate("mainWindow", "View Employee"))
-        self.actionView_Products.setText(_translate("mainWindow", "Create Products"))
-        self.actionView_Products_2.setText(_translate("mainWindow", "View Products"))
+        self.actionCreate_Product.setText(_translate("mainWindow", "Create Products"))
+        self.actionView_Products.setText(_translate("mainWindow", "View Products"))
         self.actionCreate_Orders.setText(_translate("mainWindow", "Create Order"))
         self.actionView_Orders.setText(_translate("mainWindow", "View Orders"))
         self.actionCreate_Supplier.setText(_translate("mainWindow", "Create Supplier"))
