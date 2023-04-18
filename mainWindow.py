@@ -152,16 +152,7 @@ class Ui_mainWindow(object):
         lineEdit = QtWidgets.QLineEdit(sub)
         lineEdit2 = QtWidgets.QLineEdit(sub)
         lineEdit3 = QtWidgets.QLineEdit(sub)
-        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: addCustomertoDB(lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
-
-        def addCustomertoDB(name, email, phone):
-            with conn:
-                try:
-                    c.execute(f"INSERT INTO customers (name, email, phone) VALUES ('{name}', '{email}', '{phone}')")
-                    c.execute("SELECT * FROM customers")
-                    print(c.fetchall())
-                except sqlite3.DatabaseError as e:
-                    erpLogger.info(f"Problem faced: {e}")
+        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addCustomertoDB('customers', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
 
         label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         label.setFont(font)
@@ -195,7 +186,7 @@ class Ui_mainWindow(object):
         lineEdit = QtWidgets.QLineEdit(sub)
         lineEdit2 = QtWidgets.QLineEdit(sub)
         lineEdit3 = QtWidgets.QLineEdit(sub)
-        pushButton = QtWidgets.QPushButton("Create", sub)
+        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addCustomertoDB('employees', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
 
         label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         label.setFont(font)
@@ -229,7 +220,7 @@ class Ui_mainWindow(object):
         lineEdit = QtWidgets.QLineEdit(sub)
         lineEdit2 = QtWidgets.QLineEdit(sub)
         lineEdit3 = QtWidgets.QLineEdit(sub)
-        pushButton = QtWidgets.QPushButton("Create", sub)
+        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addCustomertoDB('suppliers', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
 
         label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         label.setFont(font)
@@ -353,6 +344,15 @@ class Ui_mainWindow(object):
         self.mdiArea.addSubWindow(sub)
         
         sub.show()
+
+    def addCustomertoDB(self, table, name, email, phone):
+        with conn:
+            try:
+                c.execute(f"INSERT INTO {table} (name, email, phone) VALUES ('{name}', '{email}', '{phone}')")
+                c.execute(f"SELECT * FROM {table}")
+                print(c.fetchall())
+            except sqlite3.DatabaseError as e:
+                erpLogger.info(f"Problem faced: {e}")
 
     def retranslateUi(self, mainWindow):
         _translate = QtCore.QCoreApplication.translate
