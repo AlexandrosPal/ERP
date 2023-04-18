@@ -152,7 +152,7 @@ class Ui_mainWindow(object):
         lineEdit = QtWidgets.QLineEdit(sub)
         lineEdit2 = QtWidgets.QLineEdit(sub)
         lineEdit3 = QtWidgets.QLineEdit(sub)
-        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addCustomertoDB('customers', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
+        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB('customers', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
 
         label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         label.setFont(font)
@@ -186,7 +186,7 @@ class Ui_mainWindow(object):
         lineEdit = QtWidgets.QLineEdit(sub)
         lineEdit2 = QtWidgets.QLineEdit(sub)
         lineEdit3 = QtWidgets.QLineEdit(sub)
-        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addCustomertoDB('employees', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
+        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB('employees', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
 
         label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         label.setFont(font)
@@ -220,7 +220,7 @@ class Ui_mainWindow(object):
         lineEdit = QtWidgets.QLineEdit(sub)
         lineEdit2 = QtWidgets.QLineEdit(sub)
         lineEdit3 = QtWidgets.QLineEdit(sub)
-        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addCustomertoDB('suppliers', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
+        pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.addInfotoDB('suppliers', lineEdit.text(), lineEdit2.text(), lineEdit3.text()))
 
         label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         label.setFont(font)
@@ -345,7 +345,7 @@ class Ui_mainWindow(object):
         
         sub.show()
 
-    def addCustomertoDB(self, table, name, email, phone):
+    def addInfotoDB(self, table, name, email, phone):
         with conn:
             try:
                 c.execute(f"INSERT INTO {table} (name, email, phone) VALUES ('{name}', '{email}', '{phone}')")
