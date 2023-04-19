@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sqlite3
 import logging
+import datetime
 
 
 # Logging User
@@ -21,11 +22,13 @@ with conn:
     # c.execute("CREATE TABLE suppliers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
     # c.execute("CREATE TABLE departments(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50))")
     # c.execute("CREATE TABLE products(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), category varchar(50), price INTEGER, supplier varchar(50))")
+    # c.execute("CREATE TABLE orders(ID INTEGER PRIMARY KEY AUTOINCREMENT, customer varchar(50), product varchar(50), quantity INTEGER, date DATE)")
     # c.execute("DROP TABLE customers")
     # c.execute("DROP TABLE employees")
     # c.execute("DROP TABLE suppliers")
     # c.execute("DROP TABLE departments")
     # c.execute("DROP TABLE products")
+    # c.execute("DROP TABLE orders")
     # c.execute("SELECT * FROM departments")
     # print(c.fetchall())
     pass
@@ -86,8 +89,8 @@ class Ui_mainWindow(object):
         self.actionCreate_Product.setObjectName("actionCreate_Product")
         self.actionView_Products = QtWidgets.QAction(mainWindow)
         self.actionView_Products.setObjectName("actionView_Products")
-        self.actionCreate_Orders = QtWidgets.QAction(mainWindow)
-        self.actionCreate_Orders.setObjectName("actionCreate_Orders")
+        self.actionCreate_Order = QtWidgets.QAction(mainWindow)
+        self.actionCreate_Order.setObjectName("actionCreate_Order")
         self.actionView_Orders = QtWidgets.QAction(mainWindow)
         self.actionView_Orders.setObjectName("actionView_Orders")
         self.actionCreate_Supplier = QtWidgets.QAction(mainWindow)
@@ -114,7 +117,7 @@ class Ui_mainWindow(object):
         self.menuEmployees.addAction(self.actionView_Employees)
         self.menuProducts.addAction(self.actionCreate_Product)
         self.menuProducts.addAction(self.actionView_Products)
-        self.menuOrders.addAction(self.actionCreate_Orders)
+        self.menuOrders.addAction(self.actionCreate_Order)
         self.menuOrders.addAction(self.actionView_Orders)
         self.menuSuppliers.addAction(self.actionCreate_Supplier)
         self.menuSuppliers.addAction(self.actionView_Suppliers)
@@ -139,11 +142,13 @@ class Ui_mainWindow(object):
         self.actionCreate_Supplier.triggered.connect(lambda: self.createWindow('suppliers'))
         self.actionCreate_Department.triggered.connect(lambda: self.createWindow('departments'))
         self.actionCreate_Product.triggered.connect(lambda: self.createWindow('products'))
+        self.actionCreate_Order.triggered.connect(lambda: self.createWindow('orders'))
         self.actionView_Customers.triggered.connect(lambda: self.viewWindow('customers'))
         self.actionView_Employees.triggered.connect(lambda: self.viewWindow('employees'))
         self.actionView_Suppliers.triggered.connect(lambda: self.viewWindow('suppliers'))
         self.actionView_Departments.triggered.connect(lambda: self.viewWindow('departments'))
         self.actionView_Products.triggered.connect(lambda: self.viewWindow('products'))
+        self.actionView_Orders.triggered.connect(lambda: self.viewWindow('orders'))
 
         self.retranslateUi(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
@@ -261,6 +266,32 @@ class Ui_mainWindow(object):
             pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
             pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
+        elif table == 'orders':
+            font = QtGui.QFont()
+            font.setPointSize(12)
+            label = QtWidgets.QLabel("Customer:", sub)
+            label2 = QtWidgets.QLabel("Product:", sub)
+            label3 = QtWidgets.QLabel("Quantity:", sub)
+            lineEdit = QtWidgets.QLineEdit(sub)
+            lineEdit2 = QtWidgets.QLineEdit(sub)
+            lineEdit3 = QtWidgets.QLineEdit(sub)
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.insertInfo(table, lineEdit, lineEdit2, lineEdit3))
+
+            label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label.setFont(font)
+            label.setGeometry(QtCore.QRect(40, 40, 81, 21))
+            label2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label2.setFont(font)
+            label2.setGeometry(QtCore.QRect(40, 80, 81, 21))
+            label3.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label3.setFont(font)
+            label3.setGeometry(QtCore.QRect(10, 120, 111, 21))
+            lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
+            lineEdit2.setGeometry(QtCore.QRect(140, 80, 113, 20))
+            lineEdit3.setGeometry(QtCore.QRect(140, 120, 113, 20))
+            pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
+            pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
         self.mdiArea.addSubWindow(sub)
         sub.show()
 
@@ -315,6 +346,17 @@ class Ui_mainWindow(object):
             lineEdit.setPlaceholderText("Search by name")
             lineEdit_2.setPlaceholderText("Search by category")
             lineEdit_3.setPlaceholderText("search by supplier")
+            pushButton.clicked.connect(lambda: self.filterView(table, tableWidget, lineEdit, lineEdit_2, lineEdit_3))
+        elif table == 'orders':
+            lineEdit_2 = QtWidgets.QLineEdit(sub)
+            lineEdit_2.setGeometry(QtCore.QRect(115, 40, 91, 20))
+            lineEdit_3 = QtWidgets.QLineEdit(sub)
+            lineEdit_3.setGeometry(QtCore.QRect(215, 40, 91, 20))
+            tableWidget.setColumnCount(5)
+            headers = ["ID", "Customer", "Product", "Quantity", "Date"]
+            lineEdit.setPlaceholderText("Search by customer")
+            lineEdit_2.setPlaceholderText("Search by product")
+            lineEdit_3.setPlaceholderText("search by date")
             pushButton.clicked.connect(lambda: self.filterView(table, tableWidget, lineEdit, lineEdit_2, lineEdit_3))
         tableWidget.setHorizontalHeaderLabels(headers)
 
@@ -400,7 +442,42 @@ class Ui_mainWindow(object):
                     supplier.clear()
                 else:
                     self.errorPopup('supplierError')
-        
+
+            elif table == 'orders':
+                customer, product, quantity = args
+                with conn:
+                    c.execute("SELECT name FROM customers")
+                customers = c.fetchall()
+                stateCustomer = True
+                stateProduct = True
+                for listedCustomer in customers:
+                    if listedCustomer[0] != customer.text():
+                        stateCustomer = False
+                    else:
+                        stateCustomer = True
+                        break
+                with conn:
+                    c.execute("SELECT name FROM products")
+                products = c.fetchall()
+                for listedProduct in products:
+                    if listedProduct[0] != product.text():
+                        stateProduct = False
+                    else:
+                        stateProduct = True
+                        break
+                if stateCustomer:
+                    if stateProduct:
+                        with conn:
+                            date = datetime.date.today()
+                            c.execute(f"INSERT INTO orders (customer, product, quantity, date) VALUES ('{customer.text()}', '{product.text()}', '{quantity.text()}', '{date}')")
+                        customer.clear()
+                        product.clear()
+                        quantity.clear()
+                    else:
+                        self.errorPopup('productError')
+                else:
+                    self.errorPopup('customerError')
+
         except sqlite3.DatabaseError as e:
             erpLogger.info(f"Problem faced: {e}")
 
@@ -528,6 +605,45 @@ class Ui_mainWindow(object):
             except sqlite3.DatabaseError as e:
                 erpLogger.info(f"Problem faced: {e}")
 
+        elif table == 'orders':
+            customer, product, date = args
+            try:
+                if customer.text() != '' and product.text() == '' and date.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE customer = '{customer.text()}'")
+
+                elif customer.text() == '' and product.text() != '' and date.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE product = '{product.text()}'")
+
+                elif customer.text() == '' and product.text() == '' and date.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE date = '{date.text()}'")
+
+                elif customer.text() != '' and product.text() != '' and date.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE customer = '{customer.text()}' AND product = '{product.text()}'")
+
+                elif customer.text() == '' and product.text() != '' and date.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE product = '{product.text()}' AND date = '{date.text()}'")
+
+                elif customer.text() != '' and product.text() == '' and date.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE customer = '{customer.text()}' AND date = '{date.text()}'")
+
+                elif customer.text() != '' and product.text() != '' and date.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE customer = '{customer.text()}' AND product = '{product.text()}' AND date = '{date.text()}'")
+
+                elif customer.text() == '' and product.text() == '' and date.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table}")
+                
+                
+            except sqlite3.DatabaseError as e:
+                erpLogger.info(f"Problem faced: {e}")
+        
         tableWidget.setRowCount(0)
         for data in c.fetchall():
             row_index = tableWidget.rowCount()
@@ -545,6 +661,10 @@ class Ui_mainWindow(object):
             msg.setText("Department already exists.")
         elif reason == 'supplierError':
             msg.setText("Supplier not found.")
+        elif reason == 'customerError':
+            msg.setText("Customer not found..")
+        elif reason == 'productError':
+            msg.setText("Product not found.")
         show = msg.exec_()     
 
 
@@ -565,7 +685,7 @@ class Ui_mainWindow(object):
         self.actionView_Employees.setText(_translate("mainWindow", "View Employee"))
         self.actionCreate_Product.setText(_translate("mainWindow", "Create Products"))
         self.actionView_Products.setText(_translate("mainWindow", "View Products"))
-        self.actionCreate_Orders.setText(_translate("mainWindow", "Create Order"))
+        self.actionCreate_Order.setText(_translate("mainWindow", "Create Order"))
         self.actionView_Orders.setText(_translate("mainWindow", "View Orders"))
         self.actionCreate_Supplier.setText(_translate("mainWindow", "Create Supplier"))
         self.actionView_Suppliers.setText(_translate("mainWindow", "View Supplier"))
