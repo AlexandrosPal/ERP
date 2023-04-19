@@ -237,14 +237,14 @@ class Ui_mainWindow(object):
         tableWidget.setObjectName("tableWidget")
         tableWidget.setRowCount(0)
         lineEdit = QtWidgets.QLineEdit(sub)
-        lineEdit_2 = QtWidgets.QLineEdit(sub)
         pushButton = QtWidgets.QPushButton("Search", sub)
         tableWidget.setGeometry(QtCore.QRect(15, 70, 411, 171))
         lineEdit.setGeometry(QtCore.QRect(15, 40, 91, 20))
-        lineEdit_2.setGeometry(QtCore.QRect(115, 40, 91, 20))
         pushButton.setGeometry(QtCore.QRect(315, 40, 111, 23))
         pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         if table == 'customers' or table == 'suppliers':
+            lineEdit_2 = QtWidgets.QLineEdit(sub)
+            lineEdit_2.setGeometry(QtCore.QRect(115, 40, 91, 20))
             lineEdit_3 = QtWidgets.QLineEdit(sub)
             lineEdit_3.setGeometry(QtCore.QRect(215, 40, 91, 20))
             tableWidget.setColumnCount(4)
@@ -252,7 +252,10 @@ class Ui_mainWindow(object):
             lineEdit.setPlaceholderText("Search by name")
             lineEdit_2.setPlaceholderText("Search by email")
             lineEdit_3.setPlaceholderText("search by phone")
+            pushButton.clicked.connect(lambda: self.filterView(table, tableWidget, lineEdit, lineEdit_2, lineEdit_3))
         elif table == 'employees':
+            lineEdit_2 = QtWidgets.QLineEdit(sub)
+            lineEdit_2.setGeometry(QtCore.QRect(115, 40, 91, 20))
             lineEdit_3 = QtWidgets.QLineEdit(sub)
             lineEdit_3.setGeometry(QtCore.QRect(215, 40, 91, 20))
             tableWidget.setColumnCount(5)
@@ -260,11 +263,12 @@ class Ui_mainWindow(object):
             lineEdit.setPlaceholderText("Search by name")
             lineEdit_2.setPlaceholderText("Search by email")
             lineEdit_3.setPlaceholderText("search by department")
+            pushButton.clicked.connect(lambda: self.filterView(table, tableWidget, lineEdit, lineEdit_2, lineEdit_3))
         elif table == 'departments':
             tableWidget.setColumnCount(3)
             headers = ["ID", "Name", "Employees"]
             lineEdit.setPlaceholderText("Search by name")
-            lineEdit_2.setPlaceholderText("Search by employees")
+            pushButton.clicked.connect(lambda: self.filterView(table, tableWidget, lineEdit))
         tableWidget.setHorizontalHeaderLabels(headers)
 
         self.viewInfo(table, tableWidget)
@@ -310,7 +314,6 @@ class Ui_mainWindow(object):
                 with conn:
                         c.execute("SELECT name FROM departments")
                 departments = c.fetchall()
-                print(departments)
                 if departments == []:
                     with conn:
                         c.execute(f"INSERT INTO {table} (name) VALUES ('{name.text()}')")
@@ -355,16 +358,103 @@ class Ui_mainWindow(object):
 
     def filterView(self, table, tableWidget, *args):
         if table == 'customers' or table == 'suppliers':
-            pass
+            try:
+                name, email, phone = args
+                if name.text() != '' and email.text() == '' and phone.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}'")
+
+                elif name.text() == '' and email.text() != '' and phone.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE email = '{email.text()}'")
+
+                elif name.text() == '' and email.text() == '' and phone.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE phone = '{phone.text()}'")
+
+                elif name.text() != '' and email.text() != '' and phone.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND email = '{email.text()}'")
+
+                elif name.text() == '' and email.text() != '' and phone.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE email = '{email.text()}' AND phone = '{phone.text()}'")
+
+                elif name.text() != '' and email.text() == '' and phone.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND phone = '{phone.text()}'")
+
+                elif name.text() != '' and email.text() != '' and phone.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND email = '{email.text()}' AND phone = '{phone.text()}'")
+
+                elif name.text() == '' and email.text() == '' and phone.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table}")
+                
+            except sqlite3.DatabaseError as e:
+                erpLogger.info(f"Problem faced: {e}")
         
         elif table == 'employees':
-            pass
+            try:
+                name, email, department = args
+                if name.text() != '' and email.text() == '' and department.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}'")
+
+                elif name.text() == '' and email.text() != '' and department.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE email = '{email.text()}'")
+
+                elif name.text() == '' and email.text() == '' and department.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE department = '{department.text()}'")
+
+                elif name.text() != '' and email.text() != '' and department.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND email = '{email.text()}'")
+
+                elif name.text() == '' and email.text() != '' and department.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE email = '{email.text()}' AND department = '{department.text()}'")
+
+                elif name.text() != '' and email.text() == '' and department.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND department = '{department.text()}'")
+
+                elif name.text() != '' and email.text() != '' and department.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND email = '{email.text()}' AND department = '{department.text()}'")
+
+                elif name.text() == '' and email.text() == '' and department.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table}")
+                
+            except sqlite3.DatabaseError as e:
+                erpLogger.info(f"Problem faced: {e}")
 
         elif table == 'departments':
-            pass
-        
-        self.viewInfo(table, tableWidget)
+            try:
+                name = args[0]
+                if name.text() != '':
+                    with conn:
+                        c.execute(f"SELECT departments.ID, departments.name, COUNT(employees.ID) FROM departments LEFT JOIN employees ON departments.name = employees.department WHERE departments.name = '{name.text()}' GROUP BY departments.ID")
 
+                elif name.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table}")
+                
+            except sqlite3.DatabaseError as e:
+                erpLogger.info(f"Problem faced: {e}")
+
+        tableWidget.setRowCount(0)
+        for data in c.fetchall():
+            row_index = tableWidget.rowCount()
+            for column_index, data in enumerate(data):
+                data = str(data)
+                tableWidget.setRowCount(row_index+1)
+                tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+        
     def errorPopup(self, reason):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Error")
