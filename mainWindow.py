@@ -416,6 +416,11 @@ class Ui_mainWindow(object):
                         tableWidget.setRowCount(row_index+1)
                         tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
 
+            header = tableWidget.horizontalHeader()
+            header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+            for index in range(3):
+                header.setSectionResizeMode(index, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+
         else:
             with conn:
                 c.execute(f"SELECT * FROM {table}")
@@ -426,6 +431,11 @@ class Ui_mainWindow(object):
                         data = str(data)
                         tableWidget.setRowCount(row_index+1)
                         tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+
+            header = tableWidget.horizontalHeader()
+            header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+            for index in range(4):
+                header.setSectionResizeMode(index, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
     def filterView(self, table, tableWidget, *args):
         if table == 'customers' or table == 'suppliers':
