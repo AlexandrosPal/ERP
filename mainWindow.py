@@ -20,10 +20,12 @@ with conn:
     # c.execute("CREATE TABLE employees(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), department varchar(50), pay INTEGER)")
     # c.execute("CREATE TABLE suppliers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
     # c.execute("CREATE TABLE departments(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50))")
+    # c.execute("CREATE TABLE products(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), category varchar(50), price INTEGER, supplier varchar(50))")
     # c.execute("DROP TABLE customers")
     # c.execute("DROP TABLE employees")
     # c.execute("DROP TABLE suppliers")
     # c.execute("DROP TABLE departments")
+    # c.execute("DROP TABLE products")
     # c.execute("SELECT * FROM departments")
     # print(c.fetchall())
     pass
@@ -136,10 +138,12 @@ class Ui_mainWindow(object):
         self.actionCreate_Employee.triggered.connect(lambda: self.createWindow('employees'))
         self.actionCreate_Supplier.triggered.connect(lambda: self.createWindow('suppliers'))
         self.actionCreate_Department.triggered.connect(lambda: self.createWindow('departments'))
+        self.actionCreate_Product.triggered.connect(lambda: self.createWindow('products'))
         self.actionView_Customers.triggered.connect(lambda: self.viewWindow('customers'))
         self.actionView_Employees.triggered.connect(lambda: self.viewWindow('employees'))
         self.actionView_Suppliers.triggered.connect(lambda: self.viewWindow('suppliers'))
         self.actionView_Departments.triggered.connect(lambda: self.viewWindow('departments'))
+        self.actionView_Products.triggered.connect(lambda: self.viewWindow('products'))
 
         self.retranslateUi(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
@@ -225,6 +229,38 @@ class Ui_mainWindow(object):
             self.mdiArea.addSubWindow(sub)
             sub.show()
 
+        elif table == 'products':
+            font = QtGui.QFont()
+            font.setPointSize(12)
+            label = QtWidgets.QLabel("Name:", sub)
+            label2 = QtWidgets.QLabel("Category:", sub)
+            label3 = QtWidgets.QLabel("Price:", sub)
+            label4 = QtWidgets.QLabel("Supplier:", sub)
+            lineEdit = QtWidgets.QLineEdit(sub)
+            lineEdit2 = QtWidgets.QLineEdit(sub)
+            lineEdit3 = QtWidgets.QLineEdit(sub)
+            lineEdit4 = QtWidgets.QLineEdit(sub)
+            pushButton = QtWidgets.QPushButton("Create", sub, clicked = lambda: self.insertInfo(table, lineEdit, lineEdit2, lineEdit3, lineEdit4))
+
+            label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label.setFont(font)
+            label.setGeometry(QtCore.QRect(40, 40, 81, 21))
+            label2.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label2.setFont(font)
+            label2.setGeometry(QtCore.QRect(40, 70, 81, 21))
+            label3.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label3.setFont(font)
+            label3.setGeometry(QtCore.QRect(10, 100, 111, 21))
+            label4.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+            label4.setFont(font)
+            label4.setGeometry(QtCore.QRect(10, 130, 111, 21))
+            lineEdit.setGeometry(QtCore.QRect(140, 40, 113, 20))
+            lineEdit2.setGeometry(QtCore.QRect(140, 70, 113, 20))
+            lineEdit3.setGeometry(QtCore.QRect(140, 100, 113, 20))
+            lineEdit4.setGeometry(QtCore.QRect(140, 130, 113, 20))
+            pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
+            pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
         self.mdiArea.addSubWindow(sub)
         sub.show()
 
@@ -269,6 +305,17 @@ class Ui_mainWindow(object):
             headers = ["ID", "Name", "Employees"]
             lineEdit.setPlaceholderText("Search by name")
             pushButton.clicked.connect(lambda: self.filterView(table, tableWidget, lineEdit))
+        elif table == 'products':
+            lineEdit_2 = QtWidgets.QLineEdit(sub)
+            lineEdit_2.setGeometry(QtCore.QRect(115, 40, 91, 20))
+            lineEdit_3 = QtWidgets.QLineEdit(sub)
+            lineEdit_3.setGeometry(QtCore.QRect(215, 40, 91, 20))
+            tableWidget.setColumnCount(5)
+            headers = ["ID", "Name", "Category", "Price", "Supplier"]
+            lineEdit.setPlaceholderText("Search by name")
+            lineEdit_2.setPlaceholderText("Search by category")
+            lineEdit_3.setPlaceholderText("search by supplier")
+            pushButton.clicked.connect(lambda: self.filterView(table, tableWidget, lineEdit, lineEdit_2, lineEdit_3))
         tableWidget.setHorizontalHeaderLabels(headers)
 
         self.viewInfo(table, tableWidget)
@@ -329,32 +376,56 @@ class Ui_mainWindow(object):
                                 c.execute(f"INSERT INTO {table} (name) VALUES ('{name.text()}')")
                                 name.clear()
                                 break
+
+            elif table == 'products':
+                name, category, price, supplier = args
+                with conn:
+                    c.execute("SELECT name FROM suppliers")
+                suppliers = c.fetchall()
+                state = True
+                for listedSupplier in suppliers:
+                    if listedSupplier[0] != supplier.text():
+                        state = False
+                    else:
+                        state = True
+                        break
+                if state:
+                    print(state)
+                    print(name.text(), category.text(), price.text(), supplier.text())
+                    with conn:
+                        c.execute(f"INSERT INTO {table} (name, category, price, supplier) VALUES ('{name.text()}', '{category.text()}', '{price.text()}', '{supplier.text()}')")
+                    name.clear()
+                    category.clear()
+                    price.clear()
+                    supplier.clear()
+                else:
+                    self.errorPopup('supplierError')
         
         except sqlite3.DatabaseError as e:
             erpLogger.info(f"Problem faced: {e}")
 
-    def viewInfo(self, dbTable, table):
-        if dbTable == 'departments':
+    def viewInfo(self, table, tableWidget):
+        if table == 'departments':
             with conn:
                 c.execute("SELECT departments.ID, departments.name, COUNT(employees.ID) FROM departments LEFT JOIN employees ON departments.name = employees.department GROUP BY departments.ID")
-                table.setRowCount(0)
+                tableWidget.setRowCount(0)
                 for data in c.fetchall():
-                    row_index = table.rowCount()
+                    row_index = tableWidget.rowCount()
                     for column_index, data in enumerate(data):
                         data = str(data)
-                        table.setRowCount(row_index+1)
-                        table.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+                        tableWidget.setRowCount(row_index+1)
+                        tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
 
         else:
             with conn:
-                c.execute(f"SELECT * FROM {dbTable}")
-                table.setRowCount(0)
+                c.execute(f"SELECT * FROM {table}")
+                tableWidget.setRowCount(0)
                 for data in c.fetchall():
-                    row_index = table.rowCount()
+                    row_index = tableWidget.rowCount()
                     for column_index, data in enumerate(data):
                         data = str(data)
-                        table.setRowCount(row_index+1)
-                        table.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+                        tableWidget.setRowCount(row_index+1)
+                        tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
 
     def filterView(self, table, tableWidget, *args):
         if table == 'customers' or table == 'suppliers':
@@ -462,6 +533,8 @@ class Ui_mainWindow(object):
             msg.setText("Department not found.")
         elif reason == 'departmentExists':
             msg.setText("Department already exists.")
+        elif reason == 'supplierError':
+            msg.setText("Supplier not found.")
         show = msg.exec_()     
 
 
