@@ -456,6 +456,11 @@ class Ui_mainWindow(object):
 
             elif table == 'orders':
                 customer, product, quantity = args
+                try:
+                    quantityTest = int(quantity.text())
+                except:
+                    self.errorPopup('quantityValueError')
+                    return False
                 with conn:
                     c.execute("SELECT name FROM customers")
                 customers = c.fetchall()
@@ -519,6 +524,11 @@ class Ui_mainWindow(object):
                         data = str(data)
                         tableWidget.setRowCount(row_index+1)
                         tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+            
+            header = tableWidget.horizontalHeader()
+            header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+            for index in range(5):
+                header.setSectionResizeMode(index, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
 
         else:
             with conn:
@@ -710,7 +720,7 @@ class Ui_mainWindow(object):
             label_9 = QtWidgets.QLabel("Sales Earnings :", sub)
             label_10 = QtWidgets.QLabel("0", sub)
             label_13 = QtWidgets.QLabel(capital, sub)
-            label_11 = QtWidgets.QLabel("0 $", sub)
+            label_11 = QtWidgets.QLabel("$ 0", sub)
             line.setGeometry(QtCore.QRect(70, 50, 311, 41))
             line_2.setGeometry(QtCore.QRect(210, 70, 32, 71))
             pushButton.setGeometry(QtCore.QRect(170, 35, 112, 25))
@@ -757,7 +767,7 @@ class Ui_mainWindow(object):
             def printBalanceSheat(suppliersExpLabel, personelExpLabel, salesEarLabel, capitalLabel, balanceLabel):
                 try:
                     with conn:
-                        c.execute(f"SELECT SUM(products.price * 0.75 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
+                        c.execute(f"SELECT SUM(products.price * 0.85 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
                         suppliersExp = round(c.fetchall()[0][0])
                         suppliersExpLabel.setText(f"{suppliersExp}")
     
@@ -775,7 +785,7 @@ class Ui_mainWindow(object):
     
                 capital = float(capitalLabel.text())
                 balance = (capital + salesEar) - (suppliersExp + personelExp)
-                balanceLabel.setText(f"{balance}")
+                balanceLabel.setText(f"$ {balance}")
                 if balance > 0:
                     balanceLabel.setStyleSheet("#label_11 {color: green;}")
                 elif balance == 0:
@@ -796,6 +806,8 @@ class Ui_mainWindow(object):
             msg.setText("Customer not found..")
         elif reason == 'productError':
             msg.setText("Product not found.")
+        elif reason == 'quantityValueError':
+            msg.setText("Quantity value must be a number")
         show = msg.exec_()     
 
 
