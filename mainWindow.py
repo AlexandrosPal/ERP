@@ -5,7 +5,7 @@ import datetime
 
  
 # Variables
-capital = "1000"
+companyCapital = "1000"
 
 
 # Logging User
@@ -80,8 +80,8 @@ class Ui_mainWindow(object):
         self.menuReports.setObjectName("menuReports")
         self.menuCreate_report = QtWidgets.QMenu(self.menuReports)
         self.menuCreate_report.setObjectName("menuCreate_report")
-        self.menuSetup_Company = QtWidgets.QMenu(self.menubar)
-        self.menuSetup_Company.setObjectName("Setup_Company")
+        self.menuCompany = QtWidgets.QMenu(self.menubar)
+        self.menuCompany.setObjectName("Setup_Company")
         mainWindow.setMenuBar(self.menubar)
         self.actionCreate_Customer = QtWidgets.QAction(mainWindow)
         self.actionCreate_Customer.setObjectName("actionCreate_Customer")
@@ -149,9 +149,9 @@ class Ui_mainWindow(object):
         self.menubar.addAction(self.menuOrders.menuAction())
         self.menubar.addAction(self.menuDepartments.menuAction())
         self.menubar.addAction(self.menuReports.menuAction())
-        self.menubar.addAction(self.menuSetup_Company.menuAction())
-        self.menuSetup_Company.addAction(self.actionSetup_Company)
-        self.menuSetup_Company.addAction(self.actionView_Information)
+        self.menubar.addAction(self.menuCompany.menuAction())
+        self.menuCompany.addAction(self.actionSetup_Company)
+        self.menuCompany.addAction(self.actionView_Information)
 
         self.actionCreate_Customer.triggered.connect(lambda: self.createWindow('customers'))
         self.actionCreate_Employee.triggered.connect(lambda: self.createWindow('employees'))
@@ -728,7 +728,7 @@ class Ui_mainWindow(object):
             label_8 = QtWidgets.QLabel("Capital :", sub)
             label_9 = QtWidgets.QLabel("Sales Earnings :", sub)
             label_10 = QtWidgets.QLabel("0", sub)
-            label_13 = QtWidgets.QLabel(capital, sub)
+            label_13 = QtWidgets.QLabel("0", sub)
             label_11 = QtWidgets.QLabel("$ 0", sub)
             line.setGeometry(QtCore.QRect(70, 50, 311, 41))
             line_2.setGeometry(QtCore.QRect(210, 70, 32, 71))
@@ -790,8 +790,9 @@ class Ui_mainWindow(object):
                         salesEarLabel.setText(f"{salesEar}")
                 except sqlite3.DatabaseError as e:
                     erpLogger.info(f"Problem faced: {e}")
-    
-                capital = float(capitalLabel.text())
+
+                capital = float(companyCapital)
+                capitalLabel.setText(f"{companyCapital}")
                 balance = (capital + salesEar) - (suppliersExp + personelExp)
                 balanceLabel.setText(f"$ {balance}")
                 if balance > 0:
@@ -830,7 +831,7 @@ class Ui_mainWindow(object):
         self.menuDepartments.setTitle(_translate("mainWindow", "Departments"))
         self.menuReports.setTitle(_translate("mainWindow", "Reports"))
         self.menuCreate_report.setTitle(_translate("mainWindow", "Create report"))
-        self.menuSetup_Company.setTitle(_translate("mainWindow", "Setup Company"))
+        self.menuCompany.setTitle(_translate("mainWindow", "Company"))
         self.actionCreate_Customer.setText(_translate("mainWindow", "Create Customer"))
         self.actionView_Customers.setText(_translate("mainWindow", "View Customers"))
         self.actionCreate_Employee.setText(_translate("mainWindow", "Create Employee"))
