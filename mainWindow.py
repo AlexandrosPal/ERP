@@ -32,7 +32,7 @@ with conn:
     # c.execute("DROP TABLE suppliers")
     # c.execute("DROP TABLE departments")
     # c.execute("DROP TABLE products")
-    # c.execute("DROP TABLE orders")
+    # c.execute("DROP TABLE orders")^
     # c.execute("DROP TABLE revenueCustome)
     # c.execute("SELECT * FROM departments")
     pass
@@ -43,6 +43,7 @@ class Ui_mainWindow(object):
     def setupUi(self, mainWindow):
         mainWindow.setObjectName("mainWindow")
         mainWindow.setFixedSize(737, 511)
+        mainWindow.setWindowIcon(QtGui.QIcon('assets/icon.png'))
         self.centralwidget = QtWidgets.QWidget(mainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.background = QtWidgets.QLabel(self.centralwidget)
@@ -211,7 +212,7 @@ class Ui_mainWindow(object):
             label = QtWidgets.QLabel("Name:", sub)
             label2 = QtWidgets.QLabel("Email:", sub)
             label3 = QtWidgets.QLabel("Department:", sub)
-            label4 = QtWidgets.QLabel("M<onthly Pay:", sub)
+            label4 = QtWidgets.QLabel("Monthly Pay:", sub)
             lineEdit = QtWidgets.QLineEdit(sub)
             lineEdit2 = QtWidgets.QLineEdit(sub)
             lineEdit3 = QtWidgets.QLineEdit(sub)
@@ -775,7 +776,7 @@ class Ui_mainWindow(object):
             def printBalanceSheat(suppliersExpLabel, personelExpLabel, salesEarLabel, capitalLabel, balanceLabel):
                 try:
                     with conn:
-                        c.execute(f"SELECT SUM(products.price * 0.85 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
+                        c.execute(f"SELECT SUM(products.price * 0.90 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
                         suppliersExp = round(c.fetchall()[0][0])
                         suppliersExpLabel.setText(f"{suppliersExp}")
     
@@ -822,7 +823,7 @@ class Ui_mainWindow(object):
 
     def retranslateUi(self, mainWindow):
         _translate = QtCore.QCoreApplication.translate
-        mainWindow.setWindowTitle(_translate("mainWindow", "MainWindow"))
+        mainWindow.setWindowTitle(_translate("mainWindow", "Manager"))
         self.menuCustomers.setTitle(_translate("mainWindow", "Customers"))
         self.menuEmployees.setTitle(_translate("mainWindow", "Employees"))
         self.menuProducts.setTitle(_translate("mainWindow", "Products"))
@@ -849,7 +850,7 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Customer.setText(_translate("mainWindow", "Revenue per Customer"))
         self.actionRevenue_per_Product.setText(_translate("mainWindow", "Revenue per Product"))
         self.actionRevenue_per_Supplier.setText(_translate("mainWindow", "Revenue per Supplier"))
-        self.actionBalance_Sheet.setText(_translate("mainWindow", "Print Balance Sheat"))
+        self.actionBalance_Sheet.setText(_translate("mainWindow", "Balance Sheat"))
         self.actionSetup_Company.setText(_translate("mainWindow", "Setup Company"))
         self.actionView_Information.setText(_translate("mainWindow", "View Information"))
 
