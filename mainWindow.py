@@ -80,6 +80,8 @@ class Ui_mainWindow(object):
         self.menuReports.setObjectName("menuReports")
         self.menuCreate_report = QtWidgets.QMenu(self.menuReports)
         self.menuCreate_report.setObjectName("menuCreate_report")
+        self.menuSetup_Company = QtWidgets.QMenu(self.menubar)
+        self.menuSetup_Company.setObjectName("Setup_Company")
         mainWindow.setMenuBar(self.menubar)
         self.actionCreate_Customer = QtWidgets.QAction(mainWindow)
         self.actionCreate_Customer.setObjectName("actionCreate_Customer")
@@ -117,6 +119,10 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Supplier.setObjectName("actionRevenue_per_Supplier")
         self.actionBalance_Sheet = QtWidgets.QAction(mainWindow)
         self.actionBalance_Sheet.setObjectName("actionBalance_Sheet")
+        self.actionSetup_Company = QtWidgets.QAction(mainWindow)
+        self.actionSetup_Company.setObjectName("actionSetup_Company")
+        self.actionView_Information = QtWidgets.QAction(mainWindow)
+        self.actionView_Information.setObjectName("actionSetup_Company")
         self.menuCustomers.addAction(self.actionCreate_Customer)
         self.menuCustomers.addAction(self.actionView_Customers)
         self.menuEmployees.addAction(self.actionCreate_Employee)
@@ -143,6 +149,9 @@ class Ui_mainWindow(object):
         self.menubar.addAction(self.menuOrders.menuAction())
         self.menubar.addAction(self.menuDepartments.menuAction())
         self.menubar.addAction(self.menuReports.menuAction())
+        self.menubar.addAction(self.menuSetup_Company.menuAction())
+        self.menuSetup_Company.addAction(self.actionSetup_Company)
+        self.menuSetup_Company.addAction(self.actionView_Information)
 
         self.actionCreate_Customer.triggered.connect(lambda: self.createWindow('customers'))
         self.actionCreate_Employee.triggered.connect(lambda: self.createWindow('employees'))
@@ -759,7 +768,6 @@ class Ui_mainWindow(object):
             label_10.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
             label_13.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
             label_11.setObjectName("label_11")
-            label_11.setStyleSheet("#label_11 {color: red;}")
 
             self.mdiArea.addSubWindow(sub)
             sub.show()
@@ -822,6 +830,7 @@ class Ui_mainWindow(object):
         self.menuDepartments.setTitle(_translate("mainWindow", "Departments"))
         self.menuReports.setTitle(_translate("mainWindow", "Reports"))
         self.menuCreate_report.setTitle(_translate("mainWindow", "Create report"))
+        self.menuSetup_Company.setTitle(_translate("mainWindow", "Setup Company"))
         self.actionCreate_Customer.setText(_translate("mainWindow", "Create Customer"))
         self.actionView_Customers.setText(_translate("mainWindow", "View Customers"))
         self.actionCreate_Employee.setText(_translate("mainWindow", "Create Employee"))
@@ -840,6 +849,8 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Product.setText(_translate("mainWindow", "Revenue per Product"))
         self.actionRevenue_per_Supplier.setText(_translate("mainWindow", "Revenue per Supplier"))
         self.actionBalance_Sheet.setText(_translate("mainWindow", "Print Balance Sheat"))
+        self.actionSetup_Company.setText(_translate("mainWindow", "Setup Company"))
+        self.actionView_Information.setText(_translate("mainWindow", "View Information"))
 
 
 if __name__ == "__main__":
