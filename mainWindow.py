@@ -3,6 +3,10 @@ import sqlite3
 import logging
 import datetime
 
+ 
+# Variables
+capital = "1000"
+
 
 # Logging User
 erpLogger = logging.getLogger('ERP')
@@ -12,9 +16,9 @@ fileHandler = logging.FileHandler('erp.log')
 fileHandler.setFormatter(formatter)
 erpLogger.addHandler(fileHandler)
 
-
 conn = sqlite3.connect('erp.db')
 c = conn.cursor()
+
 
 with conn:
     # c.execute("CREATE TABLE customers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
@@ -29,8 +33,8 @@ with conn:
     # c.execute("DROP TABLE departments")
     # c.execute("DROP TABLE products")
     # c.execute("DROP TABLE orders")
+    # c.execute("DROP TABLE revenueCustome)
     # c.execute("SELECT * FROM departments")
-    # print(c.fetchall())
     pass
  
 
@@ -111,6 +115,8 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Product.setObjectName("actionRevenue_per_Product")
         self.actionRevenue_per_Supplier = QtWidgets.QAction(mainWindow)
         self.actionRevenue_per_Supplier.setObjectName("actionRevenue_per_Supplier")
+        self.actionBalance_Sheet = QtWidgets.QAction(mainWindow)
+        self.actionBalance_Sheet.setObjectName("actionBalance_Sheet")
         self.menuCustomers.addAction(self.actionCreate_Customer)
         self.menuCustomers.addAction(self.actionView_Customers)
         self.menuEmployees.addAction(self.actionCreate_Employee)
@@ -123,6 +129,7 @@ class Ui_mainWindow(object):
         self.menuSuppliers.addAction(self.actionView_Suppliers)
         self.menuDepartments.addAction(self.actionCreate_Department)
         self.menuDepartments.addAction(self.actionView_Departments)
+        self.menuCreate_report.addAction(self.actionBalance_Sheet)
         self.menuCreate_report.addAction(self.actionRevenue_per_Customer)
         self.menuCreate_report.addAction(self.actionRevenue_per_Product)
         self.menuCreate_report.addAction(self.actionRevenue_per_Supplier)
@@ -131,8 +138,8 @@ class Ui_mainWindow(object):
         self.menuReports.addAction(self.actionPrint_report)
         self.menubar.addAction(self.menuCustomers.menuAction())
         self.menubar.addAction(self.menuEmployees.menuAction())
-        self.menubar.addAction(self.menuProducts.menuAction())
         self.menubar.addAction(self.menuSuppliers.menuAction())
+        self.menubar.addAction(self.menuProducts.menuAction())
         self.menubar.addAction(self.menuOrders.menuAction())
         self.menubar.addAction(self.menuDepartments.menuAction())
         self.menubar.addAction(self.menuReports.menuAction())
@@ -149,6 +156,10 @@ class Ui_mainWindow(object):
         self.actionView_Departments.triggered.connect(lambda: self.viewWindow('departments'))
         self.actionView_Products.triggered.connect(lambda: self.viewWindow('products'))
         self.actionView_Orders.triggered.connect(lambda: self.viewWindow('orders'))
+        self.actionRevenue_per_Customer.triggered.connect(lambda: self.createReport('revenueCustomer'))
+        self.actionRevenue_per_Customer.triggered.connect(lambda: self.createReport('revenueProduct'))
+        self.actionRevenue_per_Customer.triggered.connect(lambda: self.createReport('revenueSupplier'))
+        self.actionBalance_Sheet.triggered.connect(lambda: self.createReport('Balance_Sheet'))
 
         self.retranslateUi(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
@@ -191,7 +202,7 @@ class Ui_mainWindow(object):
             label = QtWidgets.QLabel("Name:", sub)
             label2 = QtWidgets.QLabel("Email:", sub)
             label3 = QtWidgets.QLabel("Department:", sub)
-            label4 = QtWidgets.QLabel("Annual Pay:", sub)
+            label4 = QtWidgets.QLabel("M<onthly Pay:", sub)
             lineEdit = QtWidgets.QLineEdit(sub)
             lineEdit2 = QtWidgets.QLineEdit(sub)
             lineEdit3 = QtWidgets.QLineEdit(sub)
@@ -352,8 +363,8 @@ class Ui_mainWindow(object):
             lineEdit_2.setGeometry(QtCore.QRect(115, 40, 91, 20))
             lineEdit_3 = QtWidgets.QLineEdit(sub)
             lineEdit_3.setGeometry(QtCore.QRect(215, 40, 91, 20))
-            tableWidget.setColumnCount(5)
-            headers = ["ID", "Customer", "Product", "Quantity", "Date"]
+            tableWidget.setColumnCount(6)
+            headers = ["ID", "Customer", "Product", "Quantity", "Date", "Total Price"]
             lineEdit.setPlaceholderText("Search by customer")
             lineEdit_2.setPlaceholderText("Search by product")
             lineEdit_3.setPlaceholderText("search by date")
@@ -468,7 +479,7 @@ class Ui_mainWindow(object):
                 if stateCustomer:
                     if stateProduct:
                         with conn:
-                            date = datetime.date.today()
+                            date = datetime.date.today().strftime('%d-%m-%Y')
                             c.execute(f"INSERT INTO orders (customer, product, quantity, date) VALUES ('{customer.text()}', '{product.text()}', '{quantity.text()}', '{date}')")
                         customer.clear()
                         product.clear()
@@ -497,6 +508,17 @@ class Ui_mainWindow(object):
             header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
             for index in range(3):
                 header.setSectionResizeMode(index, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+
+        elif table == 'orders':
+            with conn:
+                c.execute("SELECT orders.ID, orders.customer, orders.product, orders.quantity, orders.date, (products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name GROUP by orders.ID")
+                tableWidget.setRowCount(0)
+                for data in c.fetchall():
+                    row_index = tableWidget.rowCount()
+                    for column_index, data in enumerate(data):
+                        data = str(data)
+                        tableWidget.setRowCount(row_index+1)
+                        tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
 
         else:
             with conn:
@@ -651,7 +673,116 @@ class Ui_mainWindow(object):
                 data = str(data)
                 tableWidget.setRowCount(row_index+1)
                 tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
-        
+
+    def createReport(self, type):
+        if type == 'revenueCustomer':
+            pass
+        elif type == 'revenueProduct':
+            pass
+        elif type == 'revenueSupplier':
+            pass
+        elif type == 'Balance_Sheet':
+            sub = QtWidgets.QMdiSubWindow()
+            sub.setFixedSize(450, 181)
+            sub.setWindowTitle("Balance Sheet")
+
+            font12 = QtGui.QFont()
+            font12.setPointSize(12)
+            font10 = QtGui.QFont()
+            font10.setPointSize(10)
+
+            line = QtWidgets.QFrame(sub)
+            with conn:
+                c.execute(f"SELECT MIN(date) FROM orders")
+                dateFrom = str(c.fetchall()[0][0])
+            dateFromLabel = QtWidgets.QLabel(dateFrom, sub)
+            with conn:
+                c.execute(f"SELECT MAX(date) FROM orders")
+                dateTo = str(c.fetchall()[0][0])
+            dateToLabel = QtWidgets.QLabel(dateTo, sub)
+            line_2 = QtWidgets.QFrame(sub)
+            pushButton = QtWidgets.QPushButton("Balance Sheet", sub, clicked = lambda: printBalanceSheat(label_7, label_5, label_10, label_13, label_11))
+            label_2 = QtWidgets.QLabel("Personel Exp. :", sub)
+            label_4 = QtWidgets.QLabel("Suppliers Exp. :", sub)
+            label_5 = QtWidgets.QLabel("0", sub)
+            label_7 = QtWidgets.QLabel("0", sub)
+            label_8 = QtWidgets.QLabel("Capital :", sub)
+            label_9 = QtWidgets.QLabel("Sales Earnings :", sub)
+            label_10 = QtWidgets.QLabel("0", sub)
+            label_13 = QtWidgets.QLabel(capital, sub)
+            label_11 = QtWidgets.QLabel("0 $", sub)
+            line.setGeometry(QtCore.QRect(70, 50, 311, 41))
+            line_2.setGeometry(QtCore.QRect(210, 70, 32, 71))
+            pushButton.setGeometry(QtCore.QRect(170, 35, 112, 25))
+            label_2.setGeometry(QtCore.QRect(70, 80, 102, 20))
+            label_4.setGeometry(QtCore.QRect(50, 110, 122, 20))
+            label_5.setGeometry(QtCore.QRect(166, 80, 42, 20))
+            label_7.setGeometry(QtCore.QRect(166, 110, 42, 20))
+            label_8.setGeometry(QtCore.QRect(240, 80, 102, 20))
+            label_9.setGeometry(QtCore.QRect(220, 110, 122, 20))
+            label_10.setGeometry(QtCore.QRect(345, 110, 42, 20))
+            label_13.setGeometry(QtCore.QRect(345, 80, 42, 20))
+            label_11.setGeometry(QtCore.QRect(180, 140, 92, 21))
+            dateFromLabel.setGeometry(QtCore.QRect(30, 37, 110, 22))
+            dateToLabel.setGeometry(QtCore.QRect(360, 37, 110, 22))
+            pushButton.setFont(font12)
+            label_2.setFont(font10)
+            label_4.setFont(font10)
+            label_5.setFont(font10)
+            label_7.setFont(font10)
+            label_8.setFont(font10)
+            label_9.setFont(font10)
+            label_10.setFont(font10)
+            label_13.setFont(font10)
+            label_11.setFont(font10)
+            line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+            line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+            line_2.setFrameShape(QtWidgets.QFrame.Shape.VLine)
+            line_2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+            label_11.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            label_2.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+            label_4.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+            label_5.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+            label_7.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+            label_8.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+            label_9.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+            label_10.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+            label_13.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+            label_11.setObjectName("label_11")
+            label_11.setStyleSheet("#label_11 {color: red;}")
+
+            self.mdiArea.addSubWindow(sub)
+            sub.show()
+
+            def printBalanceSheat(suppliersExpLabel, personelExpLabel, salesEarLabel, capitalLabel, balanceLabel):
+                try:
+                    with conn:
+                        c.execute(f"SELECT SUM(products.price * 0.75 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
+                        suppliersExp = round(c.fetchall()[0][0])
+                        suppliersExpLabel.setText(f"{suppliersExp}")
+    
+                    with conn:
+                        c.execute(f"SELECT SUM(employees.pay) FROM employees")
+                        personelExp = round(c.fetchall()[0][0])
+                        personelExpLabel.setText(f"{personelExp}")
+    
+                    with conn:
+                        c.execute(f"SELECT SUM(orders.quantity * products.price) FROM orders JOIN products ON orders.product = products.name")
+                        salesEar = round(c.fetchall()[0][0])
+                        salesEarLabel.setText(f"{salesEar}")
+                except sqlite3.DatabaseError as e:
+                    erpLogger.info(f"Problem faced: {e}")
+    
+                capital = float(capitalLabel.text())
+                balance = (capital + salesEar) - (suppliersExp + personelExp)
+                balanceLabel.setText(f"{balance}")
+                if balance > 0:
+                    balanceLabel.setStyleSheet("#label_11 {color: green;}")
+                elif balance == 0:
+                    balanceLabel.setStyleSheet("#label_11 {color: black;}")
+                elif balance < 0:
+                    balanceLabel.setStyleSheet("#label_11 {color: red;}")
+
     def errorPopup(self, reason):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Error")
@@ -696,6 +827,7 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Customer.setText(_translate("mainWindow", "Revenue per Customer"))
         self.actionRevenue_per_Product.setText(_translate("mainWindow", "Revenue per Product"))
         self.actionRevenue_per_Supplier.setText(_translate("mainWindow", "Revenue per Supplier"))
+        self.actionBalance_Sheet.setText(_translate("mainWindow", "Print Balance Sheat"))
 
 
 if __name__ == "__main__":
