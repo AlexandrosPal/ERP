@@ -32,7 +32,7 @@ with conn:
     # c.execute("DROP TABLE suppliers")
     # c.execute("DROP TABLE departments")
     # c.execute("DROP TABLE products")
-    # c.execute("DROP TABLE orders")^
+    # c.execute("DROP TABLE orders")
     # c.execute("DROP TABLE revenueCustome)
     # c.execute("SELECT * FROM departments")
     pass
@@ -167,8 +167,8 @@ class Ui_mainWindow(object):
         self.actionView_Products.triggered.connect(lambda: self.viewWindow('products'))
         self.actionView_Orders.triggered.connect(lambda: self.viewWindow('orders'))
         self.actionRevenue_per_Customer.triggered.connect(lambda: self.createReport('revenueCustomer'))
-        self.actionRevenue_per_Customer.triggered.connect(lambda: self.createReport('revenueProduct'))
-        self.actionRevenue_per_Customer.triggered.connect(lambda: self.createReport('revenueSupplier'))
+        self.actionRevenue_per_Product.triggered.connect(lambda: self.createReport('revenueProduct'))
+        self.actionRevenue_per_Supplier.triggered.connect(lambda: self.createReport('revenueSupplier'))
         self.actionBalance_Sheet.triggered.connect(lambda: self.createReport('Balance_Sheet'))
 
         self.retranslateUi(mainWindow)
@@ -695,12 +695,116 @@ class Ui_mainWindow(object):
                 tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
 
     def createReport(self, type):
-        if type == 'revenueCustomer':
-            pass
-        elif type == 'revenueProduct':
-            pass
-        elif type == 'revenueSupplier':
-            pass
+        if type == 'revenueCustomer' or type == 'revenueProduct' or type == 'revenueSupplier':
+            sub = QtWidgets.QMdiSubWindow()
+            sub.setFixedSize(490, 300)
+            sub.setWindowTitle("Report")
+
+            font8 = QtGui.QFont()
+            font8.setPointSize(8)
+            font10 = QtGui.QFont()
+            font10.setPointSize(10)
+
+            label = QtWidgets.QLabel(sub)
+            label_2 = QtWidgets.QLabel(sub)
+            label_3 = QtWidgets.QLabel(sub)
+            label_4 = QtWidgets.QLabel(sub)
+            pushButton = QtWidgets.QPushButton("Save", sub)
+            tableWidget = QtWidgets.QTableWidget(sub)
+            tableWidget.setColumnCount(3)
+            tableWidget.setRowCount(0)
+
+            headers = ["ID", "Name", "Revenue"]
+            tableWidget.setHorizontalHeaderLabels(headers)
+
+            label.setGeometry(QtCore.QRect(40, 35, 111, 21))
+            label_2.setGeometry(QtCore.QRect(160, 35, 31, 21))
+            label_3.setGeometry(QtCore.QRect(200, 35, 190, 21))
+            label_4.setGeometry(QtCore.QRect(342, 35, 37, 21))
+            pushButton.setGeometry(QtCore.QRect(390, 35, 75, 23))
+            tableWidget.setGeometry(QtCore.QRect(20, 65, 451, 211))
+
+            if type == 'revenueCustomer':
+                label.setText("Number of Customers :")
+                label_3.setText("Average orders per Customer :")
+                try:
+                    with conn:
+                        c.execute("SELECT customers.ID, customers.name, SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name JOIN customers on orders.customer = customers.name GROUP BY customers.name ORDER BY customers.ID")
+                        tableWidget.setRowCount(0)
+                        for data in c.fetchall():
+                            row_index = tableWidget.rowCount()
+                            for column_index, data in enumerate(data):
+                                data = str(data)
+                                tableWidget.setRowCount(row_index+1)
+                                tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+                    
+                        c.execute(f"SELECT COUNT(customers.ID) FROM customers")
+                        numberOfCustomers = str(c.fetchall()[0][0])
+                        label_2.setText(numberOfCustomers)
+
+                        c.execute(f"SELECT COUNT(orders.id) FROM orders")
+                        numberOfOrders = str(c.fetchall()[0][0])
+                        average = float(numberOfOrders)/float(numberOfCustomers)
+                        label_4.setText(str(average))
+
+                except sqlite3.DatabaseError as e:
+                    erpLogger.info(f"Problem faced: {e}")
+
+            elif type == 'revenueProduct':
+                label.setText("Number of Products :")
+                label_3.setText("Average Product Revenue:")
+                try:
+                    with conn:
+                        c.execute("SELECT products.ID, products.name, SUM(products.price * orders.quantity) AS revenue FROM products JOIN orders ON orders.product = products.name GROUP BY products.name ORDER BY revenue DESC")
+                        tableWidget.setRowCount(0)
+                        for data in c.fetchall():
+                            row_index = tableWidget.rowCount()
+                            for column_index, data in enumerate(data):
+                                data = str(data)
+                                tableWidget.setRowCount(row_index+1)
+                                tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+                    
+                        c.execute(f"SELECT COUNT(products.ID) FROM products")
+                        numberOfProducts = str(c.fetchall()[0][0])
+                        label_2.setText(numberOfProducts)
+
+                        c.execute(f"SELECT SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
+                        totalRevenue = str(c.fetchall()[0][0])
+                        average = float(totalRevenue)/float(numberOfProducts)
+                        label_4.setText(str(average))
+
+                except sqlite3.DatabaseError as e:
+                    erpLogger.info(f"Problem faced: {e}")
+
+            elif type == 'revenueSupplier':
+                label.setText("Number of Suppliers :")
+                label_3.setText("Average Supplier Revenue:")
+                try:
+                    with conn:
+                        c.execute("SELECT suppliers.ID, suppliers.name, SUM(products.price * orders.quantity) AS revenue FROM suppliers JOIN products ON products.supplier = suppliers.name JOIN orders ON orders.product = products.name GROUP BY suppliers.name ORDER BY revenue DESC")
+                        tableWidget.setRowCount(0)
+                        for data in c.fetchall():
+                            row_index = tableWidget.rowCount()
+                            for column_index, data in enumerate(data):
+                                data = str(data)
+                                tableWidget.setRowCount(row_index+1)
+                                tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+                    
+                        c.execute(f"SELECT COUNT(suppliers.ID) FROM suppliers")
+                        numberOfSuppliers = str(c.fetchall()[0][0])
+                        label_2.setText(numberOfSuppliers)
+
+                        c.execute(f"SELECT SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
+                        totalRevenue = str(c.fetchall()[0][0])
+                        average = float(totalRevenue)/float(numberOfSuppliers)
+                        label_4.setText(str(average))
+
+                except sqlite3.DatabaseError as e:
+                    erpLogger.info(f"Problem faced: {e}")
+
+            self.mdiArea.addSubWindow(sub)
+            sub.show()
+
         elif type == 'Balance_Sheet':
             sub = QtWidgets.QMdiSubWindow()
             sub.setFixedSize(450, 181)
