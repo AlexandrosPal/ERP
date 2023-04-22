@@ -2,6 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sqlite3
 import logging
 import datetime
+import random
 
  
 # Variables
@@ -28,6 +29,7 @@ with conn:
     # c.execute("CREATE TABLE products(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), category varchar(50), price INTEGER, supplier varchar(50))")
     # c.execute("CREATE TABLE orders(ID INTEGER PRIMARY KEY AUTOINCREMENT, customer varchar(50), product varchar(50), quantity INTEGER, date DATE)")
     # c.execute("CREATE TABLE company(name varchar(50), adress varchar(50), ssn INTEGER, type varchar(50), number INTEGER, email varchar(50), category varchar(50), capital INTEGER)")
+    # c.execute("CREATE TABLE reports(name varchar(50), number INTEGER)")
     # c.execute("DROP TABLE customers")
     # c.execute("DROP TABLE employees")
     # c.execute("DROP TABLE suppliers")
@@ -37,6 +39,7 @@ with conn:
     # c.execute("DROP TABLE revenueCustome")
     # c.execute("DROP TABLE company")
     # c.execute("SELECT * FROM company")
+    # c.execute("SELECT * FROM reports")
     # print(c.fetchall())
     pass
  
@@ -175,7 +178,7 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Supplier.triggered.connect(lambda: self.createReport('revenueSupplier'))
         self.actionBalance_Sheet.triggered.connect(lambda: self.createReport('BalanceSheet'))
         self.actionSetup_Company.triggered.connect(lambda: self.company('setup'))
-        self.actionView_Information.triggered.connect(lambda: self.company('infromation'))
+        self.actionView_Information.triggered.connect(lambda: self.company('information'))
         self.retranslateUi(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
@@ -184,6 +187,10 @@ class Ui_mainWindow(object):
                 c.execute("SELECT * FROM company")
                 if c.fetchall() != []:
                     self.actionSetup_Company.setEnabled(False)
+                    
+
+                elif c.fetchall() == []:
+                    self.actionView_Information.setEnabled(False)
 
         except sqlite3.DatabaseError as e:
             erpLogger.info(f"Problem faced: {e}")
@@ -739,6 +746,7 @@ class Ui_mainWindow(object):
             tableWidget.setGeometry(QtCore.QRect(20, 65, 451, 211))
 
             if type == 'revenueCustomer':
+                pushButton.clicked.connect(lambda: saveReport('revenueCustomer'))
                 label.setText("Number of Customers :")
                 label_3.setText("Average orders per Customer :")
                 try:
@@ -759,12 +767,13 @@ class Ui_mainWindow(object):
                         c.execute(f"SELECT COUNT(orders.id) FROM orders")
                         numberOfOrders = str(c.fetchall()[0][0])
                         average = float(numberOfOrders)/float(numberOfCustomers)
-                        label_4.setText(str(average))
+                        label_4.setText(f"{average:.2f}")
 
                 except sqlite3.DatabaseError as e:
                     erpLogger.info(f"Problem faced: {e}")
 
             elif type == 'revenueProduct':
+                pushButton.clicked.connect(lambda: saveReport('revenueProduct'))
                 label.setText("Number of Products :")
                 label_3.setText("Average Product Revenue:")
                 try:
@@ -785,12 +794,13 @@ class Ui_mainWindow(object):
                         c.execute(f"SELECT SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
                         totalRevenue = str(c.fetchall()[0][0])
                         average = float(totalRevenue)/float(numberOfProducts)
-                        label_4.setText(str(average))
+                        label_4.setText(f"{average:.2f}")
 
                 except sqlite3.DatabaseError as e:
                     erpLogger.info(f"Problem faced: {e}")
 
             elif type == 'revenueSupplier':
+                pushButton.clicked.connect(lambda: saveReport('revenueSupplier'))
                 label.setText("Number of Suppliers :")
                 label_3.setText("Average Supplier Revenue:")
                 try:
@@ -811,7 +821,7 @@ class Ui_mainWindow(object):
                         c.execute(f"SELECT SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
                         totalRevenue = str(c.fetchall()[0][0])
                         average = float(totalRevenue)/float(numberOfSuppliers)
-                        label_4.setText(str(average))
+                        label_4.setText(f"{average:.2f}")
 
                 except sqlite3.DatabaseError as e:
                     erpLogger.info(f"Problem faced: {e}")
@@ -894,7 +904,7 @@ class Ui_mainWindow(object):
             def printBalanceSheat(suppliersExpLabel, personelExpLabel, salesEarLabel, capitalLabel, balanceLabel):
                 try:
                     with conn:
-                        c.execute(f"SELECT SUM(products.price * 0.90 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
+                        c.execute(f"SELECT SUM(products.price * 0.70 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
                         suppliersExp = round(c.fetchall()[0][0])
                         suppliersExpLabel.setText(f"{suppliersExp}")
     
@@ -921,6 +931,38 @@ class Ui_mainWindow(object):
                 elif balance < 0:
                     balanceLabel.setStyleSheet("#label_11 {color: red;}")
 
+        def saveReport(type):
+            try:
+                with conn:
+                    number = random.randint(510000000, 510999999)
+                    today = datetime.date.today().strftime("%d/%m/%Y")
+                    c.execute(f"INSERT INTO reports (name, number) VALUES ('report_{today}', '{number}')")
+                    c.execute(f"CREATE TABLE '{number}' (ID integer, name varchar(50), revenue INTEGER)")
+                    
+                    if type == 'revenueCustomer':
+                        c.execute("SELECT customers.ID, customers.name, SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name JOIN customers on orders.customer = customers.name GROUP BY customers.name ORDER BY customers.ID")
+                        data = c.fetchall()
+                        for info in data:
+                            c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+
+                    elif type == 'revenueProduct':
+                        c.execute("SELECT products.ID, products.name, SUM(products.price * orders.quantity) AS revenue FROM products JOIN orders ON orders.product = products.name GROUP BY products.name ORDER BY revenue DESC")
+                        data = c.fetchall()
+                        for info in data:
+                            c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+
+                    elif type == 'revenueSupplier':
+                        c.execute("SELECT suppliers.ID, suppliers.name, SUM(products.price * orders.quantity) AS revenue FROM suppliers JOIN products ON products.supplier = suppliers.name JOIN orders ON orders.product = products.name GROUP BY suppliers.name ORDER BY revenue DESC")
+                        data = c.fetchall()
+                        for info in data:
+                            c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+                    
+                    c.execute(f"SELECT * FROM '{number}'")
+                    print(c.fetchall())
+            
+            except sqlite3.DatabaseError as e:
+                erpLogger.info(f"Problem faced: {e}")
+
     def company(self, action):
         sub = QtWidgets.QMdiSubWindow()
         sub.setFixedSize(380, 300)
@@ -928,65 +970,80 @@ class Ui_mainWindow(object):
         
         font10 = QtGui.QFont()
         font10.setPointSize(10)
+        line = QtWidgets.QFrame(sub)
+        label = QtWidgets.QLabel(" Company name:", sub)
+        lineEdit = QtWidgets.QLineEdit(sub)
+        label_2 = QtWidgets.QLabel(" Company SSN:", sub)
+        lineEdit_2 = QtWidgets.QLineEdit(sub)
+        label_3 = QtWidgets.QLabel(" Phone number:", sub)
+        lineEdit_3 = QtWidgets.QLineEdit(sub)
+        label_4 = QtWidgets.QLabel("Product/Services category:", sub)
+        lineEdit_4 = QtWidgets.QLineEdit(sub)
+        label_5 = QtWidgets.QLabel(" Company Adress:", sub)
+        lineEdit_5 = QtWidgets.QLineEdit(sub)
+        label_6 = QtWidgets.QLabel(" Company type:", sub)
+        lineEdit_6 = QtWidgets.QLineEdit(sub)
+        label_7 = QtWidgets.QLabel(" Company email:", sub)
+        lineEdit_7 = QtWidgets.QLineEdit(sub)
+        label_8 = QtWidgets.QLabel("Starting Capital:", sub)
+        lineEdit_8 = QtWidgets.QLineEdit(sub)
+        pushButton = QtWidgets.QPushButton("Register", sub, clicked = lambda: registerCompanyInfo(lineEdit.text(), lineEdit_5.text(), lineEdit_2.text(), lineEdit_6.text(), lineEdit_3.text(), lineEdit_7.text(), lineEdit_4.text(), lineEdit_8.text(), self.actionSetup_Company, self.actionView_Information))
+        label.setFont(font10)
+        label_2.setFont(font10)
+        label_3.setFont(font10)
+        label_4.setFont(font10)
+        label_5.setFont(font10)
+        label_6.setFont(font10)
+        label_7.setFont(font10)
+        label_8.setFont(font10)
+        line.setGeometry(QtCore.QRect(180, 50, 20, 191))
+        label.setGeometry(QtCore.QRect(20, 40, 101, 20))
+        lineEdit.setGeometry(QtCore.QRect(20, 60, 151, 20))
+        label_2.setGeometry(QtCore.QRect(20, 90, 101, 20))
+        lineEdit_2.setGeometry(QtCore.QRect(20, 110, 151, 20))
+        label_3.setGeometry(QtCore.QRect(20, 140, 101, 20))
+        lineEdit_3.setGeometry(QtCore.QRect(20, 160, 151, 20))
+        label_4.setGeometry(QtCore.QRect(20, 190, 161, 20))
+        lineEdit_4.setGeometry(QtCore.QRect(20, 210, 151, 20))
+        label_5.setGeometry(QtCore.QRect(210, 40, 111, 20))
+        lineEdit_5.setGeometry(QtCore.QRect(210, 60, 151, 20))
+        label_6.setGeometry(QtCore.QRect(210, 90, 101, 20))
+        lineEdit_6.setGeometry(QtCore.QRect(210, 110, 151, 20))
+        label_7.setGeometry(QtCore.QRect(210, 140, 101, 20))
+        lineEdit_7.setGeometry(QtCore.QRect(210, 160, 151, 20))
+        label_8.setGeometry(QtCore.QRect(210, 190, 101, 20))
+        lineEdit_8.setGeometry(QtCore.QRect(210, 210, 151, 20))
+        pushButton.setGeometry(QtCore.QRect(274, 250, 81, 23))
+        line.setFrameShape(QtWidgets.QFrame.Shape.VLine)
+        line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label_2.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label_3.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label_4.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label_5.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label_6.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label_7.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        label_8.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
+        pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
-        if action == 'setup':
-            line = QtWidgets.QFrame(sub)
-            label = QtWidgets.QLabel(" Company name:", sub)
-            lineEdit = QtWidgets.QLineEdit(sub)
-            label_2 = QtWidgets.QLabel(" Company SSN:", sub)
-            lineEdit_2 = QtWidgets.QLineEdit(sub)
-            label_3 = QtWidgets.QLabel(" Phone number:", sub)
-            lineEdit_3 = QtWidgets.QLineEdit(sub)
-            label_4 = QtWidgets.QLabel("Product/Services category:", sub)
-            lineEdit_4 = QtWidgets.QLineEdit(sub)
-            label_5 = QtWidgets.QLabel(" Company Adress:", sub)
-            lineEdit_5 = QtWidgets.QLineEdit(sub)
-            label_6 = QtWidgets.QLabel(" Company type:", sub)
-            lineEdit_6 = QtWidgets.QLineEdit(sub)
-            label_7 = QtWidgets.QLabel(" Company email:", sub)
-            lineEdit_7 = QtWidgets.QLineEdit(sub)
-            label_8 = QtWidgets.QLabel("Starting Capital:", sub)
-            lineEdit_8 = QtWidgets.QLineEdit(sub)
-            pushButton = QtWidgets.QPushButton("Register", sub, clicked = lambda: registerCompanyInfo(lineEdit.text(), lineEdit_5.text(), lineEdit_2.text(), lineEdit_6.text(), lineEdit_3.text(), lineEdit_7.text(), lineEdit_4.text(), lineEdit_8.text(), self.actionSetup_Company))
-            label.setFont(font10)
-            label_2.setFont(font10)
-            label_3.setFont(font10)
-            label_4.setFont(font10)
-            label_5.setFont(font10)
-            label_6.setFont(font10)
-            label_7.setFont(font10)
-            label_8.setFont(font10)
-            line.setGeometry(QtCore.QRect(180, 50, 20, 191))
-            label.setGeometry(QtCore.QRect(20, 40, 101, 20))
-            lineEdit.setGeometry(QtCore.QRect(20, 60, 151, 20))
-            label_2.setGeometry(QtCore.QRect(20, 90, 101, 20))
-            lineEdit_2.setGeometry(QtCore.QRect(20, 110, 151, 20))
-            label_3.setGeometry(QtCore.QRect(20, 140, 101, 20))
-            lineEdit_3.setGeometry(QtCore.QRect(20, 160, 151, 20))
-            label_4.setGeometry(QtCore.QRect(20, 190, 161, 20))
-            lineEdit_4.setGeometry(QtCore.QRect(20, 210, 151, 20))
-            label_5.setGeometry(QtCore.QRect(210, 40, 111, 20))
-            lineEdit_5.setGeometry(QtCore.QRect(210, 60, 151, 20))
-            label_6.setGeometry(QtCore.QRect(210, 90, 101, 20))
-            lineEdit_6.setGeometry(QtCore.QRect(210, 110, 151, 20))
-            label_7.setGeometry(QtCore.QRect(210, 140, 101, 20))
-            lineEdit_7.setGeometry(QtCore.QRect(210, 160, 151, 20))
-            label_8.setGeometry(QtCore.QRect(210, 190, 101, 20))
-            lineEdit_8.setGeometry(QtCore.QRect(210, 210, 151, 20))
-            pushButton.setGeometry(QtCore.QRect(274, 250, 81, 23))
-            line.setFrameShape(QtWidgets.QFrame.Shape.VLine)
-            line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
-            label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
-            label_2.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
-            label_3.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
-            label_4.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
-            label_5.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
-            label_6.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
-            label_7.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
-            label_8.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
-            pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        if action == 'information':
+            with conn:
+                c.execute("SELECT * FROM company")
 
-            def registerCompanyInfo(name, adress, ssn, type, number, email, category, capital, setpupAction):
+            lineEdits = [lineEdit, lineEdit_2, lineEdit_3, lineEdit_4, lineEdit_5, lineEdit_6, lineEdit_7, lineEdit_8]
+
+            data = c.fetchall()
+            lineEdits[0].setPlaceholderText(str(data[0][0]))
+            lineEdits[1].setPlaceholderText(str(data[0][2]))
+            lineEdits[2].setPlaceholderText(str(data[0][4]))
+            lineEdits[3].setPlaceholderText(str(data[0][6]))
+            lineEdits[4].setPlaceholderText(str(data[0][1]))
+            lineEdits[5].setPlaceholderText(str(data[0][3]))
+            lineEdits[6].setPlaceholderText(str(data[0][5]))
+            lineEdits[7].setPlaceholderText(str(data[0][7]))
+
+        def registerCompanyInfo(name, adress, ssn, type, number, email, category, capital, setpupAction, infromationAction):
+            if action == 'setup':
                 try:
                     with conn:
                         c.execute(f"INSERT INTO company (name, adress, ssn, type, number, email, category, capital) VALUES ('{name}', '{adress}', '{ssn}', '{type}', '{number}', '{email}', '{category}', '{capital}')")
@@ -994,11 +1051,12 @@ class Ui_mainWindow(object):
                 except sqlite3.DatabaseError as e:
                     erpLogger.info(f"Problem faced: {e}")
 
-                setpupAction.setEnabled(False)
-                sub.close()
+            elif action == 'information':
+                pass
 
-        elif action == 'information':
-            pass
+            setpupAction.setEnabled(False)
+            infromationAction.setEnabled(True)
+            sub.close()
 
         self.mdiArea.addSubWindow(sub)
         sub.show()
