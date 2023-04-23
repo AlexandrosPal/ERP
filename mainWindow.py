@@ -4,10 +4,6 @@ import logging
 import datetime
 import random
 
- 
-# Variables
-companyCapital = "1000"
-
 
 # Logging User
 erpLogger = logging.getLogger('ERP')
@@ -38,8 +34,10 @@ with conn:
     # c.execute("DROP TABLE orders")
     # c.execute("DROP TABLE revenueCustome")
     # c.execute("DROP TABLE company")
+    # c.execute("DROP TABLE reports")
     # c.execute("SELECT * FROM company")
     # c.execute("SELECT * FROM reports")
+    # c.execute("SELECT * FROM '510499178'")
     # print(c.fetchall())
     pass
  
@@ -850,6 +848,7 @@ class Ui_mainWindow(object):
             dateToLabel = QtWidgets.QLabel(dateTo, sub)
             line_2 = QtWidgets.QFrame(sub)
             pushButton = QtWidgets.QPushButton("Balance Sheet", sub, clicked = lambda: printBalanceSheat(label_7, label_5, label_10, label_13, label_11))
+            saveButton = QtWidgets.QPushButton("Save", sub, clicked = lambda: saveReport('BalanceSheet'))
             label_2 = QtWidgets.QLabel("Personel Exp. :", sub)
             label_4 = QtWidgets.QLabel("Suppliers Exp. :", sub)
             label_5 = QtWidgets.QLabel("0", sub)
@@ -862,6 +861,7 @@ class Ui_mainWindow(object):
             line.setGeometry(QtCore.QRect(70, 50, 311, 41))
             line_2.setGeometry(QtCore.QRect(210, 70, 32, 71))
             pushButton.setGeometry(QtCore.QRect(170, 35, 112, 25))
+            saveButton.setGeometry(QtCore.QRect(350, 140, 60, 20))
             label_2.setGeometry(QtCore.QRect(70, 80, 102, 20))
             label_4.setGeometry(QtCore.QRect(50, 110, 122, 20))
             label_5.setGeometry(QtCore.QRect(166, 80, 42, 20))
@@ -896,7 +896,6 @@ class Ui_mainWindow(object):
             label_9.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
             label_10.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
             label_13.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
-            label_11.setObjectName("label_11")
 
             self.mdiArea.addSubWindow(sub)
             sub.show()
@@ -920,46 +919,84 @@ class Ui_mainWindow(object):
                 except sqlite3.DatabaseError as e:
                     erpLogger.info(f"Problem faced: {e}")
 
-                capital = float(companyCapital)
-                capitalLabel.setText(f"{companyCapital}")
+                with conn:
+                    c.execute("SELECT capital FROM company")
+    
+                capital = c.fetchall()[0][0]
+                if capital is not None:
+                    capitalLabel.setText(f"{capital}")
+                else:
+                    capitalLabel.setText("0")
+                    self.errorPopup("capitalError")
+
                 balance = (capital + salesEar) - (suppliersExp + personelExp)
                 balanceLabel.setText(f"$ {balance}")
-                if balance > 0:
+                if int(balance) > 0:
                     balanceLabel.setStyleSheet("#label_11 {color: green;}")
-                elif balance == 0:
+                elif int(balance) == 0:
                     balanceLabel.setStyleSheet("#label_11 {color: black;}")
-                elif balance < 0:
+                elif int(balance) < 0:
                     balanceLabel.setStyleSheet("#label_11 {color: red;}")
 
         def saveReport(type):
             try:
                 with conn:
-                    number = random.randint(510000000, 510999999)
+                    c.execute(f"SELECT number FROM reports")
+                    numbers = c.fetchall()
+                    while True:
+                        number = random.randint(510000000, 510999999)
+                        if number not in numbers:
+                            break
                     today = datetime.date.today().strftime("%d/%m/%Y")
-                    c.execute(f"INSERT INTO reports (name, number) VALUES ('report_{today}', '{number}')")
-                    c.execute(f"CREATE TABLE '{number}' (ID integer, name varchar(50), revenue INTEGER)")
+                    if type == 'revenueCustomer' or type == 'revenueProduct' or type == 'revenueSupplier':
+                        c.execute(f"INSERT INTO reports (name, number) VALUES ('report_{today}', '{number}')")
+                        c.execute(f"CREATE TABLE '{number}' (ID integer, name varchar(50), revenue INTEGER)")
                     
-                    if type == 'revenueCustomer':
-                        c.execute("SELECT customers.ID, customers.name, SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name JOIN customers on orders.customer = customers.name GROUP BY customers.name ORDER BY customers.ID")
-                        data = c.fetchall()
-                        for info in data:
-                            c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+                        if type == 'revenueCustomer':
+                            c.execute("SELECT customers.ID, customers.name, SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name JOIN customers on orders.customer = customers.name GROUP BY customers.name ORDER BY customers.ID")
+                            data = c.fetchall()
+                            for info in data:
+                                c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
 
-                    elif type == 'revenueProduct':
-                        c.execute("SELECT products.ID, products.name, SUM(products.price * orders.quantity) AS revenue FROM products JOIN orders ON orders.product = products.name GROUP BY products.name ORDER BY revenue DESC")
-                        data = c.fetchall()
-                        for info in data:
-                            c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+                        elif type == 'revenueProduct':
+                            c.execute("SELECT products.ID, products.name, SUM(products.price * orders.quantity) AS revenue FROM products JOIN orders ON orders.product = products.name GROUP BY products.name ORDER BY revenue DESC")
+                            data = c.fetchall()
+                            for info in data:
+                                c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
 
-                    elif type == 'revenueSupplier':
-                        c.execute("SELECT suppliers.ID, suppliers.name, SUM(products.price * orders.quantity) AS revenue FROM suppliers JOIN products ON products.supplier = suppliers.name JOIN orders ON orders.product = products.name GROUP BY suppliers.name ORDER BY revenue DESC")
-                        data = c.fetchall()
-                        for info in data:
-                            c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+                        elif type == 'revenueSupplier':
+                            c.execute("SELECT suppliers.ID, suppliers.name, SUM(products.price * orders.quantity) AS revenue FROM suppliers JOIN products ON products.supplier = suppliers.name JOIN orders ON orders.product = products.name GROUP BY suppliers.name ORDER BY revenue DESC")
+                            data = c.fetchall()
+                            for info in data:
+                                c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+
+                    elif type == 'BalanceSheet':
+                        c.execute(f"INSERT INTO reports (name, number) VALUES ('balanceSheet_{today}', '{number}')")
+                        c.execute(f"CREATE TABLE '{number}'(mindate date, maxdate date, personel, suppliers, capital, sales, balance)")
+                        
+                        c.execute(f"SELECT MIN(date) FROM orders")
+                        dateFrom = str(c.fetchall()[0][0])
                     
-                    c.execute(f"SELECT * FROM '{number}'")
-                    print(c.fetchall())
-            
+                        c.execute(f"SELECT MAX(date) FROM orders")
+                        dateTo = str(c.fetchall()[0][0])
+
+                        c.execute(f"SELECT SUM(products.price * 0.70 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
+                        suppliersExp = round(c.fetchall()[0][0])
+    
+                        c.execute(f"SELECT SUM(employees.pay) FROM employees")
+                        personelExp = round(c.fetchall()[0][0])
+    
+                        c.execute(f"SELECT SUM(orders.quantity * products.price) FROM orders JOIN products ON orders.product = products.name")
+                        salesEar = round(c.fetchall()[0][0])
+
+                        with conn:
+                            c.execute("SELECT capital FROM company")
+                            capital = int(c.fetchall()[0][0])
+                        balance = (capital + salesEar) - (suppliersExp + personelExp)
+
+                        c.execute(f"""INSERT INTO '{number}' (mindate, maxdate, personel, suppliers, capital, sales, balance) 
+                                        VALUES ('{dateFrom}', '{dateTo}', '{personelExp}', '{suppliersExp}', '{capital}', '{salesEar}', '{balance}')""")
+                        
             except sqlite3.DatabaseError as e:
                 erpLogger.info(f"Problem faced: {e}")
 
@@ -1076,6 +1113,9 @@ class Ui_mainWindow(object):
             msg.setText("Product not found.")
         elif reason == 'quantityValueError':
             msg.setText("Quantity value must be a number")
+        elif reason == 'capitalError':
+            msg.setText("Capital is not set.")
+
         show = msg.exec_()     
 
 
