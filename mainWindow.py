@@ -37,7 +37,6 @@ with conn:
     # c.execute("DROP TABLE reports")
     # c.execute("SELECT * FROM company")
     # c.execute("SELECT * FROM reports")
-    # c.execute("SELECT * FROM '510499178'")
     # print(c.fetchall())
     pass
  
@@ -1002,7 +1001,7 @@ class Ui_mainWindow(object):
 
     def company(self, action):
         sub = QtWidgets.QMdiSubWindow()
-        sub.setFixedSize(380, 300)
+        sub.setFixedSize(355, 300)
         sub.setWindowTitle("Report")
         
         font10 = QtGui.QFont()
@@ -1025,6 +1024,8 @@ class Ui_mainWindow(object):
             lineEdit_6 = QtWidgets.QLineEdit(sub)
             lineEdit_7 = QtWidgets.QLineEdit(sub)
             lineEdit_8 = QtWidgets.QLineEdit(sub)
+            pushButton = QtWidgets.QPushButton("Register", sub, clicked = lambda: registerCompanyInfo(lineEdit.text(), lineEdit_5.text(), lineEdit_2.text(), lineEdit_6.text(), lineEdit_3.text(), lineEdit_7.text(), lineEdit_4.text(), lineEdit_8.text(), self.actionSetup_Company, self.actionView_Information))
+            
             lineEdit.setGeometry(QtCore.QRect(20, 60, 151, 20))
             lineEdit_2.setGeometry(QtCore.QRect(20, 110, 151, 20))
             lineEdit_3.setGeometry(QtCore.QRect(20, 160, 151, 20))
@@ -1033,25 +1034,37 @@ class Ui_mainWindow(object):
             lineEdit_6.setGeometry(QtCore.QRect(210, 110, 151, 20))
             lineEdit_7.setGeometry(QtCore.QRect(210, 160, 151, 20))
             lineEdit_8.setGeometry(QtCore.QRect(210, 210, 151, 20))
+
         elif action == 'information':
             labelName = QtWidgets.QLabel(sub)
             labelSSN = QtWidgets.QLabel(sub)
             labelPhone = QtWidgets.QLabel(sub)
-            labelCategoty = QtWidgets.QLabel(sub)
+            labelCategory = QtWidgets.QLabel(sub)
             labelAdress = QtWidgets.QLabel(sub)
             labelType = QtWidgets.QLabel(sub)
             labelEmail = QtWidgets.QLabel(sub)
             labelCapital = QtWidgets.QLabel(sub)
-
+            comboBox = QtWidgets.QComboBox(sub)
+            lineEdit = QtWidgets.QLineEdit(sub)
+            items = ["Name", "SSN", "Phone", "Category", "Adress", "Type", "Email", "Capital"]
+            comboBox.addItems(items)
+            pushButton = QtWidgets.QPushButton("Change", sub, clicked = lambda: changeInfo(comboBox, lineEdit))
             labelName.setGeometry(QtCore.QRect(20, 60, 151, 20))
             labelSSN.setGeometry(QtCore.QRect(20, 110, 151, 20))
             labelPhone.setGeometry(QtCore.QRect(20, 160, 151, 20))
-            labelCategoty.setGeometry(QtCore.QRect(20, 210, 151, 20))
+            labelCategory.setGeometry(QtCore.QRect(20, 210, 151, 20))
             labelAdress.setGeometry(QtCore.QRect(210, 60, 151, 20))
             labelType.setGeometry(QtCore.QRect(210, 110, 151, 20))
             labelEmail.setGeometry(QtCore.QRect(210, 160, 151, 20))
             labelCapital.setGeometry(QtCore.QRect(210, 210, 151, 20))
+            comboBox.setGeometry(QtCore.QRect(60, 250, 81, 23))
+            lineEdit.setGeometry(QtCore.QRect(153, 250, 81, 23))
+            comboBox.currentIndexChanged.connect(lambda: checkComboBox(comboBox.currentText()))
             
+            def checkComboBox(selection):
+                if selection == 'Capital':
+                    self.errorPopup("capitalWarning")
+
             with conn:
                 c.execute("SELECT * FROM company")
 
@@ -1060,14 +1073,39 @@ class Ui_mainWindow(object):
             labelName.setText(str(name))
             labelSSN.setText(str(SSN))
             labelPhone.setText(str(phone))
-            labelCategoty.setText(category)
+            labelCategory.setText(category)
             labelAdress.setText(str(adress))
             labelType.setText(str(type))
             labelEmail.setText(str(email))
             labelCapital.setText(str(capital))
 
+            def changeInfo(comboBox, lineEdit):
+                item = comboBox.currentText()
+                newText = lineEdit.text()      
+                try:
+                    with conn:
+                        c.execute(f"UPDATE company SET {item} = '{newText}' WHERE name = (SELECT name FROM company)")
+                
+                except sqlite3.DatabaseError as e:
+                    erpLogger.info(f"Problem faced: {e}")
 
-        pushButton = QtWidgets.QPushButton("Register", sub, clicked = lambda: registerCompanyInfo(lineEdit.text(), lineEdit_5.text(), lineEdit_2.text(), lineEdit_6.text(), lineEdit_3.text(), lineEdit_7.text(), lineEdit_4.text(), lineEdit_8.text(), self.actionSetup_Company, self.actionView_Information))
+                if item == 'Name':
+                    labelName.setText(newText)
+                elif item == 'SSN':
+                    labelSSN.setText(newText)
+                elif item == 'Phone':
+                    labelPhone.setText(newText)
+                elif item == 'Category':
+                    labelCategory.setText(newText)
+                elif item == 'Adress':
+                    labelAdress.setText(newText)
+                elif item == 'Type':
+                    labelType.setText(newText)
+                elif item == 'Email':
+                    labelEmail.setText(newText)
+                elif item == 'Capital':
+                    labelCapital.setText(newText)
+
         label.setFont(font10)
         label_2.setFont(font10)
         label_3.setFont(font10)
@@ -1085,7 +1123,7 @@ class Ui_mainWindow(object):
         label_6.setGeometry(QtCore.QRect(210, 90, 101, 20))
         label_7.setGeometry(QtCore.QRect(210, 140, 101, 20))
         label_8.setGeometry(QtCore.QRect(210, 190, 101, 20))
-        pushButton.setGeometry(QtCore.QRect(274, 250, 81, 23))
+        pushButton.setGeometry(QtCore.QRect(244, 250, 81, 23))
         line.setFrameShape(QtWidgets.QFrame.Shape.VLine)
         line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignVCenter)
@@ -1134,6 +1172,8 @@ class Ui_mainWindow(object):
             msg.setText("Quantity value must be a number")
         elif reason == 'capitalError':
             msg.setText("Capital is not set.")
+        elif reason == 'capitalWarning':
+            msg.setText("You are about to change the capital.")
 
         show = msg.exec_()     
 
