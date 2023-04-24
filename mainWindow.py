@@ -32,11 +32,10 @@ with conn:
     # c.execute("DROP TABLE departments")
     # c.execute("DROP TABLE products")
     # c.execute("DROP TABLE orders")
-    # c.execute("DROP TABLE revenueCustome")
     # c.execute("DROP TABLE company")
     # c.execute("DROP TABLE reports")
-    # c.execute("SELECT * FROM company")
     # c.execute("SELECT * FROM reports")
+    # c.execute("SELECT * FROM company")
     # print(c.fetchall())
     pass
  
@@ -186,15 +185,20 @@ class Ui_mainWindow(object):
         try:
             with conn:
                 c.execute("SELECT * FROM company")
-                if c.fetchall() != []:
-                    self.actionSetup_Company.setEnabled(False)
-                    
+                self.actionSetup_Company.setEnabled(False)
 
-                elif c.fetchall() == []:
-                    self.actionView_Information.setEnabled(False)
-
-        except sqlite3.DatabaseError as e:
-            erpLogger.info(f"Problem faced: {e}")
+        except sqlite3.DatabaseError:
+            self.actionCreate_Customer.setEnabled(False)
+            self.menuCustomers.setEnabled(False)
+            self.menuEmployees.setEnabled(False)
+            self.menuProducts.setEnabled(False)
+            self.menuOrders.setEnabled(False)
+            self.menuSuppliers.setEnabled(False)
+            self.menuDepartments.setEnabled(False)
+            self.menuReports.setEnabled(False)
+            self.actionView_Information.setEnabled(False)
+            self.actionAdd_Capital.setEnabled(False)
+            
 
 
     def createWindow(self, table):
@@ -1005,12 +1009,33 @@ class Ui_mainWindow(object):
 
     def company(self, action):
         if action == 'capital':
-            print('capital')
+            self.errorPopup("capitalWarning")
+
+            sub = QtWidgets.QMdiSubWindow()
+            sub.setFixedSize(280, 150)
+            sub.setWindowTitle("Company")
+
+            label = QtWidgets.QLabel("Amount :", sub)
+            capitalLineEdit = QtWidgets.QLineEdit(sub)
+            pushButton = QtWidgets.QPushButton("Add", sub, clicked = lambda: addCapital(capitalLineEdit))
+
+            label.setGeometry(QtCore.QRect(50, 60, 50, 20))
+            capitalLineEdit.setGeometry(QtCore.QRect(115, 60, 80, 20))
+            pushButton.setGeometry(QtCore.QRect(160, 100, 81, 23))
+            pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+            def addCapital(capital):
+                with conn:
+                    c.execute(f"UPDATE company SET capital = (SELECT capital FROM company) + {capital.text()}")
+                capital.clear()
+
+            self.mdiArea.addSubWindow(sub)
+            sub.show()
             return True
         
         sub = QtWidgets.QMdiSubWindow()
-        sub.setFixedSize(355, 300)
-        sub.setWindowTitle("Report")
+        sub.setFixedSize(385, 300)
+        sub.setWindowTitle("Company")
         
         font10 = QtGui.QFont()
         font10.setPointSize(10)
@@ -1145,6 +1170,16 @@ class Ui_mainWindow(object):
         pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
         def registerCompanyInfo(name, adress, ssn, type, number, email, category, capital, setpupAction, infromationAction):
+            with conn:
+                c.execute("CREATE TABLE customers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
+                c.execute("CREATE TABLE employees(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), department varchar(50), pay INTEGER)")
+                c.execute("CREATE TABLE suppliers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
+                c.execute("CREATE TABLE departments(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50))")
+                c.execute("CREATE TABLE products(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), category varchar(50), price INTEGER, supplier varchar(50))")
+                c.execute("CREATE TABLE orders(ID INTEGER PRIMARY KEY AUTOINCREMENT, customer varchar(50), product varchar(50), quantity INTEGER, date DATE)")
+                c.execute("CREATE TABLE company(name varchar(50), adress varchar(50), ssn INTEGER, type varchar(50), number INTEGER, email varchar(50), category varchar(50), capital INTEGER)")
+                c.execute("CREATE TABLE reports(name varchar(50), number INTEGER)")
+            
             if action == 'setup':
                 try:
                     with conn:
