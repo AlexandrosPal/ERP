@@ -127,6 +127,8 @@ class Ui_mainWindow(object):
         self.actionSetup_Company.setObjectName("actionSetup_Company")
         self.actionView_Information = QtWidgets.QAction(mainWindow)
         self.actionView_Information.setObjectName("actionInformation")
+        self.actionAdd_Capital = QtWidgets.QAction(mainWindow)
+        self.actionAdd_Capital.setObjectName("actionAdd_Capital")
         self.menuCustomers.addAction(self.actionCreate_Customer)
         self.menuCustomers.addAction(self.actionView_Customers)
         self.menuEmployees.addAction(self.actionCreate_Employee)
@@ -157,6 +159,7 @@ class Ui_mainWindow(object):
         self.menubar.addAction(self.menuCompany.menuAction())
         self.menuCompany.addAction(self.actionSetup_Company)
         self.menuCompany.addAction(self.actionView_Information)
+        self.menuCompany.addAction(self.actionAdd_Capital)
 
         self.actionCreate_Customer.triggered.connect(lambda: self.createWindow('customers'))
         self.actionCreate_Employee.triggered.connect(lambda: self.createWindow('employees'))
@@ -176,6 +179,7 @@ class Ui_mainWindow(object):
         self.actionBalance_Sheet.triggered.connect(lambda: self.createReport('BalanceSheet'))
         self.actionSetup_Company.triggered.connect(lambda: self.company('setup'))
         self.actionView_Information.triggered.connect(lambda: self.company('information'))
+        self.actionAdd_Capital.triggered.connect(lambda: self.company('capital'))
         self.retranslateUi(mainWindow)
         QtCore.QMetaObject.connectSlotsByName(mainWindow)
 
@@ -1000,6 +1004,10 @@ class Ui_mainWindow(object):
                 erpLogger.info(f"Problem faced: {e}")
 
     def company(self, action):
+        if action == 'capital':
+            print('capital')
+            return True
+        
         sub = QtWidgets.QMdiSubWindow()
         sub.setFixedSize(355, 300)
         sub.setWindowTitle("Report")
@@ -1210,6 +1218,7 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Supplier.setText(_translate("mainWindow", "Revenue per Supplier"))
         self.actionSetup_Company.setText(_translate("mainWindow", "Setup Company"))
         self.actionView_Information.setText(_translate("mainWindow", "View Information"))
+        self.actionAdd_Capital.setText(_translate("mainWindow", "Add Capital"))
 
 
 if __name__ == "__main__":
