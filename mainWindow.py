@@ -176,6 +176,7 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Product.triggered.connect(lambda: self.createReport('revenueProduct'))
         self.actionRevenue_per_Supplier.triggered.connect(lambda: self.createReport('revenueSupplier'))
         self.actionBalance_Sheet.triggered.connect(lambda: self.createReport('BalanceSheet'))
+        self.actionView_reports.triggered.connect(lambda: self.viewReports())
         self.actionSetup_Company.triggered.connect(lambda: self.company('setup'))
         self.actionView_Information.triggered.connect(lambda: self.company('information'))
         self.actionAdd_Capital.triggered.connect(lambda: self.company('capital'))
@@ -199,7 +200,6 @@ class Ui_mainWindow(object):
             self.actionView_Information.setEnabled(False)
             self.actionAdd_Capital.setEnabled(False)
             
-
 
     def createWindow(self, table):
         sub = QtWidgets.QMdiSubWindow()
@@ -1006,6 +1006,9 @@ class Ui_mainWindow(object):
                         
             except sqlite3.DatabaseError as e:
                 erpLogger.info(f"Problem faced: {e}")
+
+    def viewReports(self):
+        pass
 
     def company(self, action):
         if action == 'capital':
