@@ -923,27 +923,31 @@ class Ui_mainWindow(object):
                         c.execute(f"SELECT SUM(orders.quantity * products.price) FROM orders JOIN products ON orders.product = products.name")
                         salesEar = round(c.fetchall()[0][0])
                         salesEarLabel.setText(f"{salesEar}")
+
+                    with conn:
+                        c.execute("SELECT capital FROM company")
+        
+                    capital = c.fetchall()[0][0]
+                    if capital is not None:
+                        capitalLabel.setText(f"{capital}")
+                    else:
+                        capitalLabel.setText("0")
+                        self.errorPopup("capitalError")
+
+                    balance = (capital + salesEar) - (suppliersExp + personelExp)
+                    balanceLabel.setText(f"$ {balance}")
+                    if int(balance) > 0:
+                        balanceLabel.setStyleSheet("#label_11 {color: green;}")
+                    elif int(balance) == 0:
+                        balanceLabel.setStyleSheet("#label_11 {color: black;}")
+                    elif int(balance) < 0:
+                        balanceLabel.setStyleSheet("#label_11 {color: red;}")
+                
                 except sqlite3.DatabaseError as e:
                     erpLogger.info(f"Problem faced: {e}")
 
-                with conn:
-                    c.execute("SELECT capital FROM company")
-    
-                capital = c.fetchall()[0][0]
-                if capital is not None:
-                    capitalLabel.setText(f"{capital}")
-                else:
-                    capitalLabel.setText("0")
-                    self.errorPopup("capitalError")
-
-                balance = (capital + salesEar) - (suppliersExp + personelExp)
-                balanceLabel.setText(f"$ {balance}")
-                if int(balance) > 0:
-                    balanceLabel.setStyleSheet("#label_11 {color: green;}")
-                elif int(balance) == 0:
-                    balanceLabel.setStyleSheet("#label_11 {color: black;}")
-                elif int(balance) < 0:
-                    balanceLabel.setStyleSheet("#label_11 {color: red;}")
+                except TypeError as e:
+                    print(f"TypeError: {e}")  # can't round none type (because tables are empty)
 
         def saveReport(type):
             try:
@@ -1008,7 +1012,37 @@ class Ui_mainWindow(object):
                 erpLogger.info(f"Problem faced: {e}")
 
     def viewReports(self):
-        pass
+        sub = QtWidgets.QMdiSubWindow()
+        sub.setFixedSize(265, 338)
+        sub.setWindowTitle("Reports")
+        
+        tableWidget = QtWidgets.QTableWidget(sub)
+        tableWidget.setGeometry(QtCore.QRect(12, 35, 241, 280))
+        tableWidget.setColumnCount(2)
+        headers = ["Name", "Number"]
+        tableWidget.setHorizontalHeaderLabels(headers)
+        tableWidget.itemDoubleClicked.connect(lambda: viewReport())
+
+        with conn:
+            c.execute("SELECT * FROM reports")
+            tableWidget.setRowCount(0)
+            for data in c.fetchall():
+                row_index = tableWidget.rowCount()
+                for column_index, data in enumerate(data):
+                    data = str(data)
+                    tableWidget.setRowCount(row_index+1)
+                    tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+
+            header = tableWidget.horizontalHeader()
+            header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+            for index in range(2):
+                header.setSectionResizeMode(index, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+
+        def viewReport():
+            print("report")
+
+        self.mdiArea.addSubWindow(sub)
+        sub.show()
 
     def company(self, action):
         if action == 'capital':
@@ -1183,7 +1217,6 @@ class Ui_mainWindow(object):
                 c.execute("CREATE TABLE company(name varchar(50), adress varchar(50), ssn INTEGER, type varchar(50), number INTEGER, email varchar(50), category varchar(50), capital INTEGER)")
                 c.execute("CREATE TABLE reports(name varchar(50), number INTEGER)")
             
-            if action == 'setup':
                 try:
                     with conn:
                         c.execute(f"INSERT INTO company (name, adress, ssn, type, number, email, category, capital) VALUES ('{name}', '{adress}', '{ssn}', '{type}', '{number}', '{email}', '{category}', '{capital}')")
@@ -1191,10 +1224,17 @@ class Ui_mainWindow(object):
                 except sqlite3.DatabaseError as e:
                     erpLogger.info(f"Problem faced: {e}")
 
-            elif action == 'information':
-                pass
-
             setpupAction.setEnabled(False)
+            self.actionCreate_Customer.setEnabled(True)
+            self.menuCustomers.setEnabled(True)
+            self.menuEmployees.setEnabled(True)
+            self.menuProducts.setEnabled(True)
+            self.menuOrders.setEnabled(True)
+            self.menuSuppliers.setEnabled(True)
+            self.menuDepartments.setEnabled(True)
+            self.menuReports.setEnabled(True)
+            self.actionView_Information.setEnabled(True)
+            self.actionAdd_Capital.setEnabled(True)
             infromationAction.setEnabled(True)
             sub.close()
 
