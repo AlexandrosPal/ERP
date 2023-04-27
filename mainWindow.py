@@ -711,7 +711,45 @@ class Ui_mainWindow(object):
                 
             except sqlite3.DatabaseError as e:
                 erpLogger.info(f"Problem faced: {e}")
-        
+
+        elif table == 'products':
+            producName, category, supplier = args
+            try:
+                if producName.text() != '' and category.text() == '' and supplier.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{producName.text()}'")
+
+                elif producName.text() == '' and category.text() != '' and supplier.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE category = '{category.text()}'")
+
+                elif producName.text() == '' and category.text() == '' and supplier.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE supplier = '{supplier.text()}'")
+
+                elif producName.text() != '' and category.text() != '' and supplier.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{producName.text()}' AND category = '{category.text()}'")
+
+                elif producName.text() == '' and category.text() != '' and supplier.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE category = '{category.text()}' AND supplier = '{supplier.text()}'")
+
+                elif producName.text() != '' and category.text() == '' and supplier.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{producName.text()}' AND supplier = '{supplier.text()}'")
+
+                elif producName.text() != '' and category.text() != '' and supplier.text() != '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table} WHERE name = '{producName.text()}' AND category = '{category.text()}' AND supplier = '{supplier.text()}'")
+
+                elif producName.text() == '' and category.text() == '' and supplier.text() == '':
+                    with conn:
+                        c.execute(f"SELECT * FROM {table}")
+
+            except sqlite3.DatabaseError as e:
+                erpLogger.info(f"Problem faced: {e}")
+
         tableWidget.setRowCount(0)
         for data in c.fetchall():
             row_index = tableWidget.rowCount()
