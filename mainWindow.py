@@ -1133,8 +1133,8 @@ class Ui_mainWindow(object):
                 self.mdiArea.addSubWindow(sub)
                 sub.show()
                 
-            elif len(data) == 7:
-                dateFrom, dateTo, personelExp, suppliersExp, sales, capital, balance = data
+            elif len(data[0]) == 7:
+                dateFrom, dateTo, personelExp, suppliersExp, sales, capital, balance = data[0]
 
                 sub.setFixedSize(450, 181)
                 font12 = QtGui.QFont()
