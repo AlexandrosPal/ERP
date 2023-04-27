@@ -1017,11 +1017,14 @@ class Ui_mainWindow(object):
         sub.setWindowTitle("Reports")
         
         tableWidget = QtWidgets.QTableWidget(sub)
-        tableWidget.setGeometry(QtCore.QRect(12, 35, 241, 280))
+        pushButton = QtWidgets.QPushButton("View", sub, clicked = lambda: viewReport(tableWidget))
+        tableWidget.setGeometry(QtCore.QRect(12, 35, 241, 250))
+        pushButton.setGeometry(QtCore.QRect(175, 295, 70, 22))
         tableWidget.setColumnCount(2)
         headers = ["Name", "Number"]
         tableWidget.setHorizontalHeaderLabels(headers)
-        tableWidget.itemDoubleClicked.connect(lambda: viewReport())
+        pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        
 
         with conn:
             c.execute("SELECT * FROM reports")
@@ -1037,9 +1040,120 @@ class Ui_mainWindow(object):
             header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
             for index in range(2):
                 header.setSectionResizeMode(index, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+            
 
-        def viewReport():
-            print("report")
+        def viewReport(tableWidget):
+            sub = QtWidgets.QMdiSubWindow()
+            
+            row_index = tableWidget.currentRow()
+            row_items = []
+            for column in range(tableWidget.columnCount()):
+                item = tableWidget.item(row_index, column)
+                if item is not None:
+                    row_items.append(item)
+
+            row_text = [item.text() for item in row_items]
+            number = row_text[1]
+            with conn:
+                c.execute(f"SELECT * FROM '{number}'")
+                data = c.fetchall()
+
+            sub.setWindowTitle(f"Report {number}")
+
+            if len(data[0]) == 3:
+                print(data)
+                sub.setFixedSize(390, 280)
+
+                font8 = QtGui.QFont()
+                font8.setPointSize(8)
+                font10 = QtGui.QFont()
+                font10.setPointSize(10)
+
+                tableWidget = QtWidgets.QTableWidget(sub)
+                tableWidget.setColumnCount(3)
+                tableWidget.setRowCount(0)
+
+                headers = ["ID", "Name", "Revenue"]
+                tableWidget.setHorizontalHeaderLabels(headers)
+
+                tableWidget.setGeometry(QtCore.QRect(20, 40, 350, 211))
+
+                with conn:
+                    c.execute(f"SELECT * FROM '{number}'")
+                    tableWidget.setRowCount(0)
+                    for data in c.fetchall():
+                        row_index = tableWidget.rowCount()
+                        for column_index, data in enumerate(data):
+                            data = str(data)
+                            tableWidget.setRowCount(row_index+1)
+                            tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+
+                self.mdiArea.addSubWindow(sub)
+                sub.show()
+                
+            elif len(data) == 7:
+                dateFrom, dateTo, personelExp, suppliersExp, sales, capital, balance = data
+
+                sub.setFixedSize(450, 181)
+                font12 = QtGui.QFont()
+                font12.setPointSize(12)
+                font10 = QtGui.QFont()
+                font10.setPointSize(10)
+
+                line = QtWidgets.QFrame(sub)
+                dateFromLabel = QtWidgets.QLabel(dateFrom, sub)
+                dateToLabel = QtWidgets.QLabel(dateTo, sub)
+                line_2 = QtWidgets.QFrame(sub)
+                labelBalance = QtWidgets.QLabel("Balance Sheet", sub)
+                label_2 = QtWidgets.QLabel("Personel Exp. :", sub)
+                label_4 = QtWidgets.QLabel("Suppliers Exp. :", sub)
+                label_5 = QtWidgets.QLabel(personelExp, sub)
+                label_7 = QtWidgets.QLabel(suppliersExp, sub)
+                label_8 = QtWidgets.QLabel("Capital :", sub)
+                label_9 = QtWidgets.QLabel("Sales Earnings :", sub)
+                label_10 = QtWidgets.QLabel(capital, sub)
+                label_13 = QtWidgets.QLabel(sales, sub)
+                label_11 = QtWidgets.QLabel(f"$ {balance}", sub)
+                line.setGeometry(QtCore.QRect(70, 50, 311, 41))
+                line_2.setGeometry(QtCore.QRect(210, 70, 32, 71))
+                labelBalance.setGeometry(QtCore.QRect(170, 35, 112, 25))
+                label_2.setGeometry(QtCore.QRect(70, 80, 102, 20))
+                label_4.setGeometry(QtCore.QRect(50, 110, 122, 20))
+                label_5.setGeometry(QtCore.QRect(166, 80, 42, 20))
+                label_7.setGeometry(QtCore.QRect(166, 110, 42, 20))
+                label_8.setGeometry(QtCore.QRect(240, 80, 102, 20))
+                label_9.setGeometry(QtCore.QRect(220, 110, 122, 20))
+                label_10.setGeometry(QtCore.QRect(345, 110, 42, 20))
+                label_13.setGeometry(QtCore.QRect(345, 80, 42, 20))
+                label_11.setGeometry(QtCore.QRect(180, 140, 92, 21))
+                dateFromLabel.setGeometry(QtCore.QRect(30, 37, 110, 22))
+                dateToLabel.setGeometry(QtCore.QRect(360, 37, 110, 22))
+                labelBalance.setFont(font12)
+                label_2.setFont(font10)
+                label_4.setFont(font10)
+                label_5.setFont(font10)
+                label_7.setFont(font10)
+                label_8.setFont(font10)
+                label_9.setFont(font10)
+                label_10.setFont(font10)
+                label_13.setFont(font10)
+                label_11.setFont(font10)
+                line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+                line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+                line_2.setFrameShape(QtWidgets.QFrame.Shape.VLine)
+                line_2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+                label_11.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                label_2.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+                label_4.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+                label_5.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+                label_7.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+                label_8.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+                label_9.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+                label_10.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+                label_13.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignTrailing|QtCore.Qt.AlignmentFlag.AlignVCenter)
+
+                self.mdiArea.addSubWindow(sub)
+                sub.show()
 
         self.mdiArea.addSubWindow(sub)
         sub.show()
