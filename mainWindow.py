@@ -37,6 +37,10 @@ with conn:
     # c.execute("SELECT * FROM reports")
     # c.execute("SELECT * FROM company")
     # print(c.fetchall())
+
+    # c.execute("SELECT number FROM reports")
+    # for report in c.fetchall():
+        # c.execute(f"DROP TABLE '{report[0]}'")
     pass
  
 
@@ -588,31 +592,31 @@ class Ui_mainWindow(object):
                 name, email, phone = args
                 if name.text() != '' and email.text() == '' and phone.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{name.text()}%'")
 
                 elif name.text() == '' and email.text() != '' and phone.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE email = '{email.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE email LIKE '%{email.text()}%'")
 
                 elif name.text() == '' and email.text() == '' and phone.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE phone = '{phone.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE phone LIKE '%{phone.text()}%'")
 
                 elif name.text() != '' and email.text() != '' and phone.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND email = '{email.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{name.text()}%' AND email LIKE '%{email.text()}%'")
 
                 elif name.text() == '' and email.text() != '' and phone.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE email = '{email.text()}' AND phone = '{phone.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE email LIKE '%{email.text()}%' AND phone LIKE '%{phone.text()}%'")
 
                 elif name.text() != '' and email.text() == '' and phone.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND phone = '{phone.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{name.text()}%' AND phone LIKE '%{phone.text()}%'")
 
                 elif name.text() != '' and email.text() != '' and phone.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND email = '{email.text()}' AND phone = '{phone.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{name.text()}%' AND email LIKE '%{email.text()}%' AND phone LIKE '%{phone.text()}%'")
 
                 elif name.text() == '' and email.text() == '' and phone.text() == '':
                     with conn:
@@ -626,31 +630,31 @@ class Ui_mainWindow(object):
                 name, email, department = args
                 if name.text() != '' and email.text() == '' and department.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{name.text()}%'")
 
                 elif name.text() == '' and email.text() != '' and department.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE email = '{email.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE email LIKE '%{email.text()}%'")
 
                 elif name.text() == '' and email.text() == '' and department.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE department = '{department.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE department LIKE '%{department.text()}%'")
 
                 elif name.text() != '' and email.text() != '' and department.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND email = '{email.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{name.text()}%' AND email LIKE '%{email.text()}%'")
 
                 elif name.text() == '' and email.text() != '' and department.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE email = '{email.text()}' AND department = '{department.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE email LIKE '%{email.text()}%' AND department LIKE '%{department.text()}%'")
 
                 elif name.text() != '' and email.text() == '' and department.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND department = '{department.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{name.text()}%' AND department LIKE '%{department.text()}%'")
 
                 elif name.text() != '' and email.text() != '' and department.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{name.text()}' AND email = '{email.text()}' AND department = '{department.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{name.text()}%' AND email LIKE '%{email.text()}%' AND department LIKE '%{department.text()}%'")
 
                 elif name.text() == '' and email.text() == '' and department.text() == '':
                     with conn:
@@ -664,7 +668,7 @@ class Ui_mainWindow(object):
                 name = args[0]
                 if name.text() != '':
                     with conn:
-                        c.execute(f"SELECT departments.ID, departments.name, COUNT(employees.ID) FROM departments LEFT JOIN employees ON departments.name = employees.department WHERE departments.name = '{name.text()}' GROUP BY departments.ID")
+                        c.execute(f"SELECT departments.ID, departments.name, COUNT(employees.ID) FROM departments LEFT JOIN employees ON departments.name = employees.department WHERE departments.name LIKE '%{name.text()}%' GROUP BY departments.ID")
 
                 elif name.text() == '':
                     with conn:
@@ -678,35 +682,35 @@ class Ui_mainWindow(object):
             try:
                 if customer.text() != '' and product.text() == '' and date.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE customer = '{customer.text()}'")
+                        c.execute(f"SELECT orders.ID, orders.customer, orders.product, orders.quantity, orders.date, (products.price * orders.quantity) FROM {table} JOIN products ON orders.product = products.name WHERE orders.customer LIKE '%{customer.text()}%' GROUP by orders.ID")
 
                 elif customer.text() == '' and product.text() != '' and date.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE product = '{product.text()}'")
-
+                        c.execute(f"SELECT orders.ID, orders.customer, orders.product, orders.quantity, orders.date, (products.price * orders.quantity) FROM {table} JOIN products ON orders.product = products.name WHERE product LIKE '%{product.text()}%' GROUP by orders.ID")
+                
                 elif customer.text() == '' and product.text() == '' and date.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE date = '{date.text()}'")
+                        c.execute(f"SELECT orders.ID, orders.customer, orders.product, orders.quantity, orders.date, (products.price * orders.quantity) FROM {table} JOIN products ON orders.product = products.name WHERE date LIKE '%{date.text()}%' GROUP by orders.ID ")
 
                 elif customer.text() != '' and product.text() != '' and date.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE customer = '{customer.text()}' AND product = '{product.text()}'")
+                        c.execute(f"SELECT orders.ID, orders.customer, orders.product, orders.quantity, orders.date, (products.price * orders.quantity) FROM {table} JOIN products ON orders.product = products.name WHERE customer LIKE '%{customer.text()}%' AND product LIKE '%{product.text()}%' GROUP by orders.ID ")
 
                 elif customer.text() == '' and product.text() != '' and date.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE product = '{product.text()}' AND date = '{date.text()}'")
+                        c.execute(f"SELECT orders.ID, orders.customer, orders.product, orders.quantity, orders.date, (products.price * orders.quantity) FROM {table} JOIN products ON orders.product = products.name WHERE product LIKE '%{product.text()}%' AND date LIKE '%{date.text()}%' GROUP by orders.ID")
 
                 elif customer.text() != '' and product.text() == '' and date.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE customer = '{customer.text()}' AND date = '{date.text()}'")
+                        c.execute(f"SELECT orders.ID, orders.customer, orders.product, orders.quantity, orders.date, (products.price * orders.quantity) FROM {table} JOIN products ON orders.product = products.name WHERE customer LIKE '%{customer.text()}%' AND date LIKE '%{date.text()}%' GROUP by orders.ID")
 
                 elif customer.text() != '' and product.text() != '' and date.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE customer = '{customer.text()}' AND product = '{product.text()}' AND date = '{date.text()}'")
+                        c.execute(f"SELECT orders.ID, orders.customer, orders.product, orders.quantity, orders.date, (products.price * orders.quantity) FROM {table} JOIN products ON orders.product = products.name WHERE customer LIKE '%{customer.text()}%' AND product LIKE '%{product.text()}%' AND date LIKE '%{date.text()}%' GROUP by orders.ID")
 
                 elif customer.text() == '' and product.text() == '' and date.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table}")
+                        c.execute(f"SELECT orders.ID, orders.customer, orders.product, orders.quantity, orders.date, (products.price * orders.quantity) FROM {table} JOIN products ON orders.product = products.name GROUP by orders.ID")
                 
                 
             except sqlite3.DatabaseError as e:
@@ -717,31 +721,31 @@ class Ui_mainWindow(object):
             try:
                 if producName.text() != '' and category.text() == '' and supplier.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{producName.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{producName.text()}%'")
 
                 elif producName.text() == '' and category.text() != '' and supplier.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE category = '{category.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE category LIKE '%{category.text()}%'")
 
                 elif producName.text() == '' and category.text() == '' and supplier.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE supplier = '{supplier.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE supplier LIKE '%{supplier.text()}%'")
 
                 elif producName.text() != '' and category.text() != '' and supplier.text() == '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{producName.text()}' AND category = '{category.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{producName.text()}%' AND category LIKE '%{category.text()}%'")
 
                 elif producName.text() == '' and category.text() != '' and supplier.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE category = '{category.text()}' AND supplier = '{supplier.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE category LIKE '%{category.text()}%' AND supplier LIKE '%{supplier.text()}%'")
 
                 elif producName.text() != '' and category.text() == '' and supplier.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{producName.text()}' AND supplier = '{supplier.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{producName.text()}%' AND supplier LIKE '%{supplier.text()}%'")
 
                 elif producName.text() != '' and category.text() != '' and supplier.text() != '':
                     with conn:
-                        c.execute(f"SELECT * FROM {table} WHERE name = '{producName.text()}' AND category = '{category.text()}' AND supplier = '{supplier.text()}'")
+                        c.execute(f"SELECT * FROM {table} WHERE name LIKE '%{producName.text()}%' AND category LIKE '%{category.text()}%' AND supplier LIKE '%{supplier.text()}%'")
 
                 elif producName.text() == '' and category.text() == '' and supplier.text() == '':
                     with conn:
