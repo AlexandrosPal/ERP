@@ -40,7 +40,7 @@ with conn:
 
     # c.execute("SELECT number FROM reports")
     # for report in c.fetchall():
-        # c.execute(f"DROP TABLE '{report[0]}'")
+    #     c.execute(f"DROP TABLE '{report[0]}'")
     pass
  
 
@@ -992,66 +992,86 @@ class Ui_mainWindow(object):
                     print(f"TypeError: {e}")  # can't round none type (because tables are empty)
 
         def saveReport(type):
-            try:
-                with conn:
-                    c.execute(f"SELECT number FROM reports")
-                    numbers = c.fetchall()
-                    while True:
-                        number = random.randint(510000000, 510999999)
-                        if number not in numbers:
-                            break
-                    today = datetime.date.today().strftime("%d/%m/%Y")
-                    if type == 'revenueCustomer' or type == 'revenueProduct' or type == 'revenueSupplier':
-                        c.execute(f"INSERT INTO reports (name, number) VALUES ('report_{today}', '{number}')")
-                        c.execute(f"CREATE TABLE '{number}' (ID integer, name varchar(50), revenue INTEGER)")
-                    
-                        if type == 'revenueCustomer':
-                            c.execute("SELECT customers.ID, customers.name, SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name JOIN customers on orders.customer = customers.name GROUP BY customers.name ORDER BY customers.ID")
-                            data = c.fetchall()
-                            for info in data:
-                                c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+            reportName = ['']
+            sub = QtWidgets.QMdiSubWindow()
+            sub.setFixedSize(280, 150)
+            sub.setWindowTitle("Give report Name")
 
-                        elif type == 'revenueProduct':
-                            c.execute("SELECT products.ID, products.name, SUM(products.price * orders.quantity) AS revenue FROM products JOIN orders ON orders.product = products.name GROUP BY products.name ORDER BY revenue DESC")
-                            data = c.fetchall()
-                            for info in data:
-                                c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+            label = QtWidgets.QLabel("Name: ", sub)
+            reportLineEdit = QtWidgets.QLineEdit(sub)
+            pushButton = QtWidgets.QPushButton("Add", sub, clicked = lambda: saveReportName(reportLineEdit))
 
-                        elif type == 'revenueSupplier':
-                            c.execute("SELECT suppliers.ID, suppliers.name, SUM(products.price * orders.quantity) AS revenue FROM suppliers JOIN products ON products.supplier = suppliers.name JOIN orders ON orders.product = products.name GROUP BY suppliers.name ORDER BY revenue DESC")
-                            data = c.fetchall()
-                            for info in data:
-                                c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
+            label.setGeometry(QtCore.QRect(50, 60, 50, 20))
+            reportLineEdit.setGeometry(QtCore.QRect(115, 60, 80, 20))
+            pushButton.setGeometry(QtCore.QRect(160, 100, 81, 23))
+            pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
-                    elif type == 'BalanceSheet':
-                        c.execute(f"INSERT INTO reports (name, number) VALUES ('balanceSheet_{today}', '{number}')")
-                        c.execute(f"CREATE TABLE '{number}'(mindate date, maxdate date, personel, suppliers, capital, sales, balance)")
+            self.mdiArea.addSubWindow(sub)
+            sub.show()            
+
+            def saveReportName(reportLineEdit):
+                reportName[0] = reportLineEdit.text()
+                sub.close()
+                try:
+                    with conn:
+                        c.execute(f"SELECT number FROM reports")
+                        numbers = c.fetchall()
+                        while True:
+                            number = random.randint(510000000, 510999999)
+                            if number not in numbers:
+                                break
+                        if type == 'revenueCustomer' or type == 'revenueProduct' or type == 'revenueSupplier':
+                            c.execute(f"""INSERT INTO reports (name, number) VALUES ("{reportName[0]}", '{number}')""")
+                            c.execute(f"CREATE TABLE '{number}' (ID integer, name varchar(50), revenue INTEGER)")
                         
-                        c.execute(f"SELECT MIN(date) FROM orders")
-                        dateFrom = str(c.fetchall()[0][0])
-                    
-                        c.execute(f"SELECT MAX(date) FROM orders")
-                        dateTo = str(c.fetchall()[0][0])
+                            if type == 'revenueCustomer':
+                                c.execute("SELECT customers.ID, customers.name, SUM(products.price * orders.quantity) FROM orders JOIN products ON orders.product = products.name JOIN customers on orders.customer = customers.name GROUP BY customers.name ORDER BY customers.ID")
+                                data = c.fetchall()
+                                for info in data:
+                                    c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
 
-                        c.execute(f"SELECT SUM(products.price * 0.70 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
-                        suppliersExp = round(c.fetchall()[0][0])
-    
-                        c.execute(f"SELECT SUM(employees.pay) FROM employees")
-                        personelExp = round(c.fetchall()[0][0])
-    
-                        c.execute(f"SELECT SUM(orders.quantity * products.price) FROM orders JOIN products ON orders.product = products.name")
-                        salesEar = round(c.fetchall()[0][0])
+                            elif type == 'revenueProduct':
+                                c.execute("SELECT products.ID, products.name, SUM(products.price * orders.quantity) AS revenue FROM products JOIN orders ON orders.product = products.name GROUP BY products.name ORDER BY revenue DESC")
+                                data = c.fetchall()
+                                for info in data:
+                                    c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
 
-                        with conn:
-                            c.execute("SELECT capital FROM company")
-                            capital = int(c.fetchall()[0][0])
-                        balance = (capital + salesEar) - (suppliersExp + personelExp)
+                            elif type == 'revenueSupplier':
+                                c.execute("SELECT suppliers.ID, suppliers.name, SUM(products.price * orders.quantity) AS revenue FROM suppliers JOIN products ON products.supplier = suppliers.name JOIN orders ON orders.product = products.name GROUP BY suppliers.name ORDER BY revenue DESC")
+                                data = c.fetchall()
+                                for info in data:
+                                    c.execute(f"INSERT INTO '{number}' (ID, name, revenue) VALUES ('{info[0]}', '{info[1]}', '{info[2]}')")
 
-                        c.execute(f"""INSERT INTO '{number}' (mindate, maxdate, personel, suppliers, capital, sales, balance) 
-                                        VALUES ('{dateFrom}', '{dateTo}', '{personelExp}', '{suppliersExp}', '{capital}', '{salesEar}', '{balance}')""")
+                        elif type == 'BalanceSheet':
+                            c.execute(f"""INSERT INTO reports (name, number) VALUES ("{reportName[0]}", '{number}')""")
+                            c.execute(f"CREATE TABLE '{number}'(mindate date, maxdate date, personel, suppliers, capital, sales, balance)")
+                            
+                            c.execute(f"SELECT MIN(date) FROM orders")
+                            dateFrom = str(c.fetchall()[0][0])
                         
-            except sqlite3.DatabaseError as e:
-                erpLogger.info(f"Problem faced: {e}")
+                            c.execute(f"SELECT MAX(date) FROM orders")
+                            dateTo = str(c.fetchall()[0][0])
+
+                            c.execute(f"SELECT SUM(products.price * 0.70 * orders.quantity) FROM orders JOIN products ON orders.product = products.name")
+                            suppliersExp = round(c.fetchall()[0][0])
+        
+                            c.execute(f"SELECT SUM(employees.pay) FROM employees")
+                            personelExp = round(c.fetchall()[0][0])
+        
+                            c.execute(f"SELECT SUM(orders.quantity * products.price) FROM orders JOIN products ON orders.product = products.name")
+                            salesEar = round(c.fetchall()[0][0])
+
+                            with conn:
+                                c.execute("SELECT capital FROM company")
+                                capital = int(c.fetchall()[0][0])
+                            balance = (capital + salesEar) - (suppliersExp + personelExp)
+
+                            c.execute(f"""INSERT INTO '{number}' (mindate, maxdate, personel, suppliers, capital, sales, balance) 
+                                            VALUES ('{dateFrom}', '{dateTo}', '{personelExp}', '{suppliersExp}', '{capital}', '{salesEar}', '{balance}')""")
+                            
+                except sqlite3.DatabaseError as e:
+                    erpLogger.info(f"Problem faced: {e}")
+
 
     def viewReports(self):
         sub = QtWidgets.QMdiSubWindow()
