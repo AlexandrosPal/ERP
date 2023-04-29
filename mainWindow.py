@@ -1247,6 +1247,11 @@ class Ui_mainWindow(object):
             pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
             def addCapital(capital):
+                try:
+                    capitalTest = int(capital.text())
+                except ValueError:
+                    self.errorPopup("capitalValueError")
+                    return False
                 with conn:
                     c.execute(f"UPDATE company SET capital = (SELECT capital FROM company) + {capital.text()}")
                 capital.clear()
@@ -1392,6 +1397,12 @@ class Ui_mainWindow(object):
         pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
         def registerCompanyInfo(name, adress, ssn, type, number, email, category, capital, setpupAction, infromationAction):
+            try:
+                capitalTest = int(capital)
+            except ValueError:
+                self.errorPopup("capitalValueError")
+                return False
+    
             with conn:
                 c.execute("CREATE TABLE customers(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), phone int)")
                 c.execute("CREATE TABLE employees(ID INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50), email varchar(50), department varchar(50), pay INTEGER)")
@@ -1449,6 +1460,8 @@ class Ui_mainWindow(object):
             msg.setText("Payment must be an integer.")
         elif reason == 'priceValueError':
             msg.setText("Price must be an integer.")
+        elif reason == 'capitalValueError':
+            msg.setText("Capital must be an integer.")
 
         show = msg.exec_()     
 
