@@ -440,7 +440,12 @@ class Ui_mainWindow(object):
                         break
                 if state:
                     with conn:
-                        annualPay = int(pay.text())
+                        try:
+                            annualPay = int(pay.text())
+                        except ValueError:
+                            self.errorPopup("payValueError")
+                            return False
+
                         c.execute(f"INSERT INTO {table} (name, email, department, pay) VALUES ('{name.text()}', '{email.text()}', '{department.text()}', '{annualPay:,}')")
                     name.clear()
                     email.clear()
@@ -472,6 +477,11 @@ class Ui_mainWindow(object):
 
             elif table == 'products':
                 name, category, price, supplier = args
+                try:
+                    priceTest = int(quantity.text())
+                except:
+                    self.errorPopup('priceValueError')
+                    return False
                 with conn:
                     c.execute("SELECT name FROM suppliers")
                 suppliers = c.fetchall()
@@ -1072,7 +1082,6 @@ class Ui_mainWindow(object):
                 except sqlite3.DatabaseError as e:
                     erpLogger.info(f"Problem faced: {e}")
 
-
     def viewReports(self):
         sub = QtWidgets.QMdiSubWindow()
         sub.setFixedSize(265, 338)
@@ -1436,6 +1445,10 @@ class Ui_mainWindow(object):
             msg.setText("Capital is not set.")
         elif reason == 'capitalWarning':
             msg.setText("You are about to change the capital.")
+        elif reason == 'payValueError':
+            msg.setText("Payment must be an integer.")
+        elif reason == 'priceValueError':
+            msg.setText("Price must be an integer.")
 
         show = msg.exec_()     
 
