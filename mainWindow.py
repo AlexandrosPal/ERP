@@ -1088,15 +1088,19 @@ class Ui_mainWindow(object):
         sub.setWindowTitle("Reports")
         
         tableWidget = QtWidgets.QTableWidget(sub)
-        pushButton = QtWidgets.QPushButton("View", sub, clicked = lambda: viewReport(tableWidget))
+        viewButton = QtWidgets.QPushButton("View", sub, clicked = lambda: viewReport(tableWidget))
+        lineEdit = QtWidgets.QLineEdit(sub)
+        searchButton = QtWidgets.QPushButton("Search", sub, clicked = lambda: searchReport(lineEdit, tableWidget))
         tableWidget.setGeometry(QtCore.QRect(12, 35, 241, 250))
-        pushButton.setGeometry(QtCore.QRect(175, 295, 70, 22))
+        viewButton.setGeometry(QtCore.QRect(175, 295, 70, 22))
+        lineEdit.setGeometry(QtCore.QRect(12, 295, 70, 22))
+        searchButton.setGeometry(QtCore.QRect(90, 295, 70, 22))
         tableWidget.setColumnCount(2)
         headers = ["Name", "Number"]
         tableWidget.setHorizontalHeaderLabels(headers)
-        pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        viewButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        searchButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         
-
         with conn:
             c.execute("SELECT * FROM reports")
             tableWidget.setRowCount(0)
@@ -1112,7 +1116,6 @@ class Ui_mainWindow(object):
             for index in range(2):
                 header.setSectionResizeMode(index, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
             
-
         def viewReport(tableWidget):
             sub = QtWidgets.QMdiSubWindow()
             
@@ -1225,6 +1228,18 @@ class Ui_mainWindow(object):
 
                 self.mdiArea.addSubWindow(sub)
                 sub.show()
+
+        def searchReport(lineEdit, tableWidget):
+            search = lineEdit.text()
+            with conn:
+                c.execute(f"SELECT * FROM reports WHERE name LIKE '%{search}%' or number LIKE '%{search}%'")
+                tableWidget.setRowCount(0)
+                for data in c.fetchall():
+                    row_index = tableWidget.rowCount()
+                    for column_index, data in enumerate(data):
+                        data = str(data)
+                        tableWidget.setRowCount(row_index+1)
+                        tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
 
         self.mdiArea.addSubWindow(sub)
         sub.show()
