@@ -94,14 +94,20 @@ class Ui_mainWindow(object):
         self.actionCreate_Customer.setObjectName("actionCreate_Customer")
         self.actionView_Customers = QtWidgets.QAction(mainWindow)
         self.actionView_Customers.setObjectName("actionView_Customers")
+        self.actionDelete_Customer = QtWidgets.QAction(mainWindow)
+        self.actionDelete_Customer.setObjectName("actionView_Customers")
         self.actionCreate_Employee = QtWidgets.QAction(mainWindow)
         self.actionCreate_Employee.setObjectName("actionCreate_Employee")
         self.actionView_Employees = QtWidgets.QAction(mainWindow)
         self.actionView_Employees.setObjectName("actionView_Employee")
+        self.actionDelete_Employee = QtWidgets.QAction(mainWindow)
+        self.actionDelete_Employee.setObjectName("actionView_Employee")
         self.actionCreate_Product = QtWidgets.QAction(mainWindow)
         self.actionCreate_Product.setObjectName("actionCreate_Product")
         self.actionView_Products = QtWidgets.QAction(mainWindow)
         self.actionView_Products.setObjectName("actionView_Products")
+        self.actionDelete_Product = QtWidgets.QAction(mainWindow)
+        self.actionDelete_Product.setObjectName("actionView_Products")
         self.actionCreate_Order = QtWidgets.QAction(mainWindow)
         self.actionCreate_Order.setObjectName("actionCreate_Order")
         self.actionView_Orders = QtWidgets.QAction(mainWindow)
@@ -110,10 +116,14 @@ class Ui_mainWindow(object):
         self.actionCreate_Supplier.setObjectName("actionCreate_Supplier")
         self.actionView_Suppliers = QtWidgets.QAction(mainWindow)
         self.actionView_Suppliers.setObjectName("actionView_Supplier")
+        self.actionDelete_Supplier = QtWidgets.QAction(mainWindow)
+        self.actionDelete_Supplier.setObjectName("actionView_Supplier")
         self.actionCreate_Department = QtWidgets.QAction(mainWindow)
         self.actionCreate_Department.setObjectName("actionCreate_Department")
         self.actionView_Departments = QtWidgets.QAction(mainWindow)
         self.actionView_Departments.setObjectName("actionView_Department")
+        self.actionDelete_Department = QtWidgets.QAction(mainWindow)
+        self.actionDelete_Department.setObjectName("actionView_Department")
         self.actionView_reports = QtWidgets.QAction(mainWindow)
         self.actionView_reports.setObjectName("actionView_reports")
         self.actionPrint_report = QtWidgets.QAction(mainWindow)
@@ -134,16 +144,21 @@ class Ui_mainWindow(object):
         self.actionAdd_Capital.setObjectName("actionAdd_Capital")
         self.menuCustomers.addAction(self.actionCreate_Customer)
         self.menuCustomers.addAction(self.actionView_Customers)
+        self.menuCustomers.addAction(self.actionDelete_Customer)
         self.menuEmployees.addAction(self.actionCreate_Employee)
         self.menuEmployees.addAction(self.actionView_Employees)
+        self.menuEmployees.addAction(self.actionDelete_Employee)
         self.menuProducts.addAction(self.actionCreate_Product)
         self.menuProducts.addAction(self.actionView_Products)
+        self.menuProducts.addAction(self.actionDelete_Product)
         self.menuOrders.addAction(self.actionCreate_Order)
         self.menuOrders.addAction(self.actionView_Orders)
         self.menuSuppliers.addAction(self.actionCreate_Supplier)
         self.menuSuppliers.addAction(self.actionView_Suppliers)
+        self.menuSuppliers.addAction(self.actionDelete_Supplier)
         self.menuDepartments.addAction(self.actionCreate_Department)
         self.menuDepartments.addAction(self.actionView_Departments)
+        self.menuDepartments.addAction(self.actionDelete_Department)
         self.menuCreate_report.addAction(self.actionBalance_Sheet)
         self.menuCreate_report.addSeparator()
         self.menuCreate_report.addAction(self.actionRevenue_per_Customer)
@@ -170,17 +185,26 @@ class Ui_mainWindow(object):
         self.actionCreate_Department.triggered.connect(lambda: self.createWindow('departments'))
         self.actionCreate_Product.triggered.connect(lambda: self.createWindow('products'))
         self.actionCreate_Order.triggered.connect(lambda: self.createWindow('orders'))
+
         self.actionView_Customers.triggered.connect(lambda: self.viewWindow('customers'))
         self.actionView_Employees.triggered.connect(lambda: self.viewWindow('employees'))
         self.actionView_Suppliers.triggered.connect(lambda: self.viewWindow('suppliers'))
         self.actionView_Departments.triggered.connect(lambda: self.viewWindow('departments'))
         self.actionView_Products.triggered.connect(lambda: self.viewWindow('products'))
         self.actionView_Orders.triggered.connect(lambda: self.viewWindow('orders'))
+
+        self.actionDelete_Customer.triggered.connect(lambda: self.deleteWindow('Customers'))
+        self.actionDelete_Employee.triggered.connect(lambda: self.deleteWindow('Employees'))
+        self.actionDelete_Supplier.triggered.connect(lambda: self.deleteWindow('Suppliers'))
+        self.actionDelete_Department.triggered.connect(lambda: self.deleteWindow('Departments'))
+        self.actionDelete_Product.triggered.connect(lambda: self.deleteWindow('Products'))
+
         self.actionRevenue_per_Customer.triggered.connect(lambda: self.createReport('revenueCustomer'))
         self.actionRevenue_per_Product.triggered.connect(lambda: self.createReport('revenueProduct'))
         self.actionRevenue_per_Supplier.triggered.connect(lambda: self.createReport('revenueSupplier'))
         self.actionBalance_Sheet.triggered.connect(lambda: self.createReport('BalanceSheet'))
         self.actionView_reports.triggered.connect(lambda: self.viewReports())
+
         self.actionSetup_Company.triggered.connect(lambda: self.company('setup'))
         self.actionView_Information.triggered.connect(lambda: self.company('information'))
         self.actionAdd_Capital.triggered.connect(lambda: self.company('capital'))
@@ -343,9 +367,6 @@ class Ui_mainWindow(object):
             pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
             pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
 
-        self.mdiArea.addSubWindow(sub)
-        sub.show()
-
     def viewWindow(self, table):
         sub = QtWidgets.QMdiSubWindow()
         sub.setFixedSize(440, 260)
@@ -412,6 +433,41 @@ class Ui_mainWindow(object):
         tableWidget.setHorizontalHeaderLabels(headers)
 
         self.viewInfo(table, tableWidget)
+        self.mdiArea.addSubWindow(sub)
+        sub.show()
+
+    def deleteWindow(self, table):
+        if table == 'Departments':
+            self.errorPopup("departmentDeletionWarning")
+
+        sub = QtWidgets.QMdiSubWindow()
+        sub.setFixedSize(280, 150)
+        sub.setWindowTitle(f"Delete {table}")
+
+        label = QtWidgets.QLabel(f"{table}:", sub)
+        comboBox = QtWidgets.QComboBox(sub)
+        pushButton = QtWidgets.QPushButton("Delete", sub, clicked = lambda: deleteItem(comboBox))
+
+        with conn:
+            c.execute(f"SELECT * FROM {table.lower()}")
+        for item in c.fetchall():
+            comboBox.addItem(item[1])
+
+        label.setGeometry(QtCore.QRect(50, 60, 50, 20))
+        comboBox.setGeometry(QtCore.QRect(115, 60, 80, 20))
+        pushButton.setGeometry(QtCore.QRect(160, 100, 81, 23))
+        pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        def deleteItem(comboBox):
+            with conn:
+                c.execute(f"SELECT name FROM employees WHERE department = '{comboBox.currentText()}'")
+                if c.fetchall() != []:
+                    self.errorPopup("departmentDeletionError")
+                    return False
+            with conn:
+                c.execute(f"DELETE FROM {table.lower()} WHERE name = '{comboBox.currentText()}'")
+            comboBox.removeItem(comboBox.findText(comboBox.currentText()))
+
         self.mdiArea.addSubWindow(sub)
         sub.show()
 
@@ -1477,6 +1533,10 @@ class Ui_mainWindow(object):
             msg.setText("Price must be an integer.")
         elif reason == 'capitalValueError':
             msg.setText("Capital must be an integer.")
+        elif reason == 'departmentDeletionWarning':
+            msg.setText("Make sure the Department you wish to delete has no active Employees registered.")
+        elif reason == 'departmentDeletionError':
+            msg.setText("Department has Employees registered.")
 
         show = msg.exec_()     
 
@@ -1493,24 +1553,37 @@ class Ui_mainWindow(object):
         self.menuReports.setTitle(_translate("mainWindow", "Reports"))
         self.menuCreate_report.setTitle(_translate("mainWindow", "Create report"))
         self.menuCompany.setTitle(_translate("mainWindow", "Company"))
+
         self.actionCreate_Customer.setText(_translate("mainWindow", "Create Customer"))
         self.actionView_Customers.setText(_translate("mainWindow", "View Customers"))
+        self.actionDelete_Customer.setText(_translate("mainWindow", "Delete Customer"))
+
         self.actionCreate_Employee.setText(_translate("mainWindow", "Create Employee"))
-        self.actionView_Employees.setText(_translate("mainWindow", "View Employee"))
+        self.actionView_Employees.setText(_translate("mainWindow", "View Employees"))
+        self.actionDelete_Employee.setText(_translate("mainWindow", "Delete Employee"))
+
         self.actionCreate_Product.setText(_translate("mainWindow", "Create Products"))
         self.actionView_Products.setText(_translate("mainWindow", "View Products"))
+        self.actionDelete_Product.setText(_translate("mainWindow", "Delete Product"))
+
         self.actionCreate_Order.setText(_translate("mainWindow", "Create Order"))
         self.actionView_Orders.setText(_translate("mainWindow", "View Orders"))
+
         self.actionCreate_Supplier.setText(_translate("mainWindow", "Create Supplier"))
         self.actionView_Suppliers.setText(_translate("mainWindow", "View Supplier"))
+        self.actionDelete_Supplier.setText(_translate("mainWindow", "Delete Supplier"))
+
         self.actionCreate_Department.setText(_translate("mainWindow", "Create Department"))
         self.actionView_Departments.setText(_translate("mainWindow", "View Department"))
+        self.actionDelete_Department.setText(_translate("mainWindow", "Delete Department"))
+
         self.actionView_reports.setText(_translate("mainWindow", "View reports"))
         self.actionPrint_report.setText(_translate("mainWindow", "Print report"))
         self.actionBalance_Sheet.setText(_translate("mainWindow", "Balance Sheet"))
         self.actionRevenue_per_Customer.setText(_translate("mainWindow", "Revenue per Customer"))
         self.actionRevenue_per_Product.setText(_translate("mainWindow", "Revenue per Product"))
         self.actionRevenue_per_Supplier.setText(_translate("mainWindow", "Revenue per Supplier"))
+
         self.actionSetup_Company.setText(_translate("mainWindow", "Setup Company"))
         self.actionView_Information.setText(_translate("mainWindow", "View Information"))
         self.actionAdd_Capital.setText(_translate("mainWindow", "Add Capital"))
