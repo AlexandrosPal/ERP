@@ -3,6 +3,10 @@ import sqlite3
 import logging
 import datetime
 import random
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
 
 
 # Logging User
@@ -204,6 +208,7 @@ class Ui_mainWindow(object):
         self.actionRevenue_per_Supplier.triggered.connect(lambda: self.createReport('revenueSupplier'))
         self.actionBalance_Sheet.triggered.connect(lambda: self.createReport('BalanceSheet'))
         self.actionView_reports.triggered.connect(lambda: self.viewReports())
+        self.actionPrint_report.triggered.connect(lambda: self.printReports())
 
         self.actionSetup_Company.triggered.connect(lambda: self.company('setup'))
         self.actionView_Information.triggered.connect(lambda: self.company('information'))
@@ -366,6 +371,9 @@ class Ui_mainWindow(object):
             lineEdit3.setGeometry(QtCore.QRect(140, 120, 113, 20))
             pushButton.setGeometry(QtCore.QRect(70, 160, 161, 23))
             pushButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+
+        self.mdiArea.addSubWindow(sub)
+        sub.show()
 
     def viewWindow(self, table):
         sub = QtWidgets.QMdiSubWindow()
@@ -534,8 +542,8 @@ class Ui_mainWindow(object):
             elif table == 'products':
                 name, category, price, supplier = args
                 try:
-                    priceTest = int(quantity.text())
-                except:
+                    priceTest = float(price.text())
+                except ValueError:
                     self.errorPopup('priceValueError')
                     return False
                 with conn:
@@ -549,8 +557,6 @@ class Ui_mainWindow(object):
                         state = True
                         break
                 if state:
-                    print(state)
-                    print(name.text(), category.text(), price.text(), supplier.text())
                     with conn:
                         c.execute(f"INSERT INTO {table} (name, category, price, supplier) VALUES ('{name.text()}', '{category.text()}', '{price.text()}', '{supplier.text()}')")
                     name.clear()
@@ -869,6 +875,8 @@ class Ui_mainWindow(object):
                         for data in c.fetchall():
                             row_index = tableWidget.rowCount()
                             for column_index, data in enumerate(data):
+                                if isinstance(data, float):
+                                    data = round(data, 2)
                                 data = str(data)
                                 tableWidget.setRowCount(row_index+1)
                                 tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
@@ -896,6 +904,8 @@ class Ui_mainWindow(object):
                         for data in c.fetchall():
                             row_index = tableWidget.rowCount()
                             for column_index, data in enumerate(data):
+                                if isinstance(data, float):
+                                    data = round(data, 2)
                                 data = str(data)
                                 tableWidget.setRowCount(row_index+1)
                                 tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
@@ -923,6 +933,8 @@ class Ui_mainWindow(object):
                         for data in c.fetchall():
                             row_index = tableWidget.rowCount()
                             for column_index, data in enumerate(data):
+                                if isinstance(data, float):
+                                    data = round(data, 2)
                                 data = str(data)
                                 tableWidget.setRowCount(row_index+1)
                                 tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
@@ -1300,6 +1312,128 @@ class Ui_mainWindow(object):
         self.mdiArea.addSubWindow(sub)
         sub.show()
 
+    def printReports(self):
+        sub = QtWidgets.QMdiSubWindow()
+        sub.setFixedSize(265, 338)
+        sub.setWindowTitle("Reports")
+        
+        tableWidget = QtWidgets.QTableWidget(sub)
+        printButton = QtWidgets.QPushButton("Print", sub, clicked = lambda: printReport(tableWidget))
+        tableWidget.setGeometry(QtCore.QRect(12, 35, 241, 250))
+        printButton.setGeometry(QtCore.QRect(175, 295, 70, 22))
+        tableWidget.setColumnCount(2)
+        headers = ["Name", "Number"]
+        tableWidget.setHorizontalHeaderLabels(headers)
+        printButton.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
+        
+        with conn:
+            c.execute("SELECT * FROM reports")
+            tableWidget.setRowCount(0)
+            for data in c.fetchall():
+                row_index = tableWidget.rowCount()
+                for column_index, data in enumerate(data):
+                    data = str(data)
+                    tableWidget.setRowCount(row_index+1)
+                    tableWidget.setItem(row_index, column_index, QtWidgets.QTableWidgetItem(data))
+
+            header = tableWidget.horizontalHeader()
+            header.setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeMode.Stretch)
+            for index in range(2):
+                header.setSectionResizeMode(index, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+
+        def printReport(table):
+            file_path, _ = QtWidgets.QFileDialog.getSaveFileName(caption="Save PDF", filter="PDF Files (*.pdf)")
+
+            selected_items = table.selectedItems()
+            if not selected_items:
+                self.errorPopup("noReportSelectedError")
+            row_items = []
+            for column in range(tableWidget.columnCount()):
+                item = tableWidget.item(row_index, column)
+                if item is not None:
+                    row_items.append(item)
+            
+            number = row_items[1].text()
+            with conn:
+                c.execute(f"SELECT * FROM '{number}'")
+                data = c.fetchall()
+            
+            if len(data[0]) == 7:
+                dateFrom, dateTo, personelExp, suppliersExp, sales, capital, balance = data[0]
+                
+                pdf_canvas = SimpleDocTemplate(file_path, pagesize=letter)
+                heading_style = ParagraphStyle(name='Heading', fontSize=16, leading=20, alignment=1)
+                
+                info = [
+                    ["Date From", dateFrom],
+                    ["Date To", dateTo],
+                    ["Personel Exp.", personelExp],
+                    ["Suppliers Exp.", suppliersExp],
+                    ["Sales Rev.", sales],
+                    ["Capital", capital],
+                    ["Balance", balance]
+                ]
+
+                table = Table(info)
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.gray),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 14),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                    ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 12),
+                    ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+                    ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 10)
+                ]))
+
+                heading = Paragraph(f"Balance Sheet: {row_items[0].text()}", heading_style)
+                line = HRFlowable(width="100%", thickness=0.25, lineCap='round', color=colors.black)
+                spacer = Spacer(1, 20)
+
+                elements = [heading, line, spacer, table]
+                pdf_canvas.build(elements)
+
+            if len(data[0]) == 3:
+                pdf_canvas = SimpleDocTemplate(file_path, pagesize=letter)
+                heading_style = ParagraphStyle(name='Heading', fontSize=16, leading=20, alignment=1)
+
+                info = [["ID", "Name", "Revenue"]]
+                for tuple in data:
+                    info.append(list(tuple))
+                table = Table(info)
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.gray),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 14),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                    ('ALIGN', (0, 1), (-1, -1), 'LEFT'),
+                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('FONTSIZE', (0, 1), (-1, -1), 12),
+                    ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+                    ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 10)
+                ]))
+
+                heading = Paragraph(f"Report: {row_items[0].text()}", heading_style)
+                line = HRFlowable(width="100%", thickness=0.25, lineCap='round', color=colors.black)
+                spacer = Spacer(1, 20)
+
+                elements = [heading, line, spacer, table]
+                pdf_canvas.build(elements)
+
+        self.mdiArea.addSubWindow(sub)
+        sub.show()
+
     def company(self, action):
         if action == 'capital':
             self.errorPopup("capitalWarning")
@@ -1537,6 +1671,8 @@ class Ui_mainWindow(object):
             msg.setText("Make sure the Department you wish to delete has no active Employees registered.")
         elif reason == 'departmentDeletionError':
             msg.setText("Department has Employees registered.")
+        elif reason == 'noReportSelectedError':
+            msg.setText("Please select a Report.")
 
         show = msg.exec_()     
 
