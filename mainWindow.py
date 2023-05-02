@@ -1,22 +1,26 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sqlite3
 import logging
+import logging.handlers
 import datetime
 import random
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable
+import os
 
 
 # Logging User
+logPath = os.path.join("logs", "erp.log")
 erpLogger = logging.getLogger('ERP')
 erpLogger.setLevel(logging.INFO)
 formatter = logging.Formatter('%(levelname)s: %(asctime)s: %(name)s: %(message)s')
-fileHandler = logging.FileHandler('erp.log')
+fileHandler = logging.handlers.RotatingFileHandler(logPath, maxBytes=1024*1024, backupCount=5)
 fileHandler.setFormatter(formatter)
 erpLogger.addHandler(fileHandler)
 
+# SQLite connection
 conn = sqlite3.connect('erp.db')
 c = conn.cursor()
 
@@ -1203,7 +1207,6 @@ class Ui_mainWindow(object):
             sub.setWindowTitle(f"Report {number}")
 
             if len(data[0]) == 3:
-                print(data)
                 sub.setFixedSize(390, 280)
 
                 font8 = QtGui.QFont()
