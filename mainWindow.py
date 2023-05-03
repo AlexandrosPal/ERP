@@ -1650,6 +1650,7 @@ class Ui_mainWindow(object):
     def errorPopup(self, reason):
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Error")
+        msg.setIcon(QtWidgets.QMessageBox.Information)
         if reason == 'departmentError':
             msg.setText("Department not found.")
         elif reason == 'departmentExists':
